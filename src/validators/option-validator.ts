@@ -4,7 +4,7 @@
 
 import { PRODUCT_PRICES } from '@/config/products'
 
-export const Colors = [
+export const COLORS = [
   { label: 'Black', value: 'black', tw: 'zinc-900' },
   {
     label: 'Blue',
