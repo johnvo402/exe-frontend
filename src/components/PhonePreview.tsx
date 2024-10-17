@@ -52,14 +52,6 @@ const PhonePreview = ({
           src={croppedImageUrl}
         />
       </div>
-
-      <div className='relative h-full w-full z-40'>
-        <img
-          alt='phone'
-          src='/clearphone.png'
-          className='pointer-events-none h-full w-full antialiased rounded-md'
-        />
-      </div>
     </AspectRatio>
   )
 }

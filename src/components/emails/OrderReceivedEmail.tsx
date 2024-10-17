@@ -1,4 +1,4 @@
-import { ShippingAddress } from '@prisma/client'
+import { ShippingAddress } from '@prisma/client';
 import {
   Body,
   Column,
@@ -12,21 +12,21 @@ import {
   Row,
   Section,
   Text,
-} from '@react-email/components'
+} from '@react-email/components';
 
 const OrderReceivedEmail = ({
   shippingAddress,
   orderId,
   orderDate,
 }: {
-  shippingAddress: ShippingAddress
-  orderId: string
-  orderDate: string
+  shippingAddress: ShippingAddress;
+  orderId: string;
+  orderDate: string;
 }) => {
   const baseUrl =
     process.env.NODE_ENV === 'development'
-      ? 'http://localhost:3000'
-      : 'https://osty.vercel.app'
+      ? 'https://exe-frontend-exe-osty.vercel.app'
+      : 'https://osty.store';
 
   return (
     <Html>
@@ -36,10 +36,10 @@ const OrderReceivedEmail = ({
         <Container style={container}>
           <Section style={message}>
             <Img
-              src={`${baseUrl}/snake-3.png`}
-              width='65'
-              height='73'
-              alt='delivery snake'
+              src={`${baseUrl}/logo.png`}
+              width="65"
+              height="73"
+              alt="delivery logo"
               style={{ margin: 'auto' }}
             />
             <Heading style={global.heading}>Thank you for your order!</Heading>
@@ -67,7 +67,7 @@ const OrderReceivedEmail = ({
                 <Text style={global.paragraphWithBold}>Order Number</Text>
                 <Text style={track.number}>{orderId}</Text>
               </Column>
-              <Column style={{marginLeft: 20}}>
+              <Column style={{ marginLeft: 20 }}>
                 <Text style={global.paragraphWithBold}>Order Date</Text>
                 <Text style={track.number}>{orderDate}</Text>
               </Column>
@@ -83,7 +83,8 @@ const OrderReceivedEmail = ({
                   ...footer.text,
                   paddingTop: 30,
                   paddingBottom: 30,
-                }}>
+                }}
+              >
                 Please contact us if you have any questions. (If you reply to
                 this email, we won't be able to see it.)
               </Text>
@@ -97,25 +98,25 @@ const OrderReceivedEmail = ({
         </Container>
       </Body>
     </Html>
-  )
-}
+  );
+};
 
-export default OrderReceivedEmail
+export default OrderReceivedEmail;
 
 const paddingX = {
   paddingLeft: '40px',
   paddingRight: '40px',
-}
+};
 
 const paddingY = {
   paddingTop: '22px',
   paddingBottom: '22px',
-}
+};
 
 const paragraph = {
   margin: '0',
   lineHeight: '2',
-}
+};
 
 const global = {
   paddingX,
@@ -152,20 +153,20 @@ const global = {
     borderColor: '#E5E5E5',
     margin: '0',
   },
-}
+};
 
 const main = {
   backgroundColor: '#ffffff',
   fontFamily:
     '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
-}
+};
 
 const container = {
   margin: '10px auto',
   width: '600px',
   maxWidth: '100%',
   border: '1px solid #E5E5E5',
-}
+};
 
 const track = {
   container: {
@@ -178,18 +179,18 @@ const track = {
     lineHeight: '1.4',
     color: '#6F6F6F',
   },
-}
+};
 
 const message = {
   padding: '40px 74px',
   textAlign: 'center',
-} as React.CSSProperties
+} as React.CSSProperties;
 
 const adressTitle = {
   ...paragraph,
   fontSize: '15px',
   fontWeight: 'bold',
-}
+};
 
 const footer = {
   policy: {
@@ -202,4 +203,4 @@ const footer = {
     fontSize: '13px',
     textAlign: 'center',
   } as React.CSSProperties,
-}
+};
