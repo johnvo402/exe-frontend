@@ -1,16 +1,13 @@
 'use client'
 
-import { CaseColor } from '@prisma/client'
 import { useEffect, useRef, useState } from 'react'
 import { AspectRatio } from './ui/aspect-ratio'
 import { cn } from '@/lib/utils'
 
 const PhonePreview = ({
   croppedImageUrl,
-  color,
 }: {
   croppedImageUrl: string
-  color: CaseColor
 }) => {
   const ref = useRef<HTMLDivElement>(null)
 
@@ -34,8 +31,7 @@ const PhonePreview = ({
   }, [ref.current])
 
   let caseBackgroundColor = 'bg-zinc-950'
-  if (color === 'blue') caseBackgroundColor = 'bg-blue-950'
-  if (color === 'rose') caseBackgroundColor = 'bg-rose-950'
+
 
   return (
     <AspectRatio ref={ref} ratio={3000 / 2001} className='relative'>

@@ -13,28 +13,22 @@ export default function Home() {
         <MaxWidthWrapper className='pb-24 pt-10 lg:grid lg:grid-cols-3 sm:pb-32 lg:gap-x-0 xl:gap-x-8 lg:pt-24 xl:pt-32 lg:pb-52'>
           <div className='col-span-2 px-6 lg:px-0 lg:pt-4'>
             <div className='relative mx-auto text-center lg:text-left flex flex-col items-center lg:items-start'>
-              <div className='absolute w-28 left-0 -top-20 hidden lg:block'>
-                {/* i forgot this div right here in the video, it's purely visual gradient and looks nice */}
-                <div className='absolute inset-x-0 bottom-0 bg-gradient-to-t via-slate-50/50 from-slate-50 h-28' />
-                <img src='/snake-1.png' className='w-full' />
-              </div>
               <h1 className='relative w-fit tracking-tight text-balance mt-16 font-bold !leading-tight text-gray-900 text-5xl md:text-6xl lg:text-7xl'>
-                Your Image on a{' '}
-                <span className='bg-green-600 px-2 text-white'>Custom</span>{' '}
-                Phone Case
+                Your Design on a{' '}
+                <span className='bg-black px-2 text-white'>Custom</span>{' '}
+                T-Shirt
               </h1>
               <p className='mt-8 text-lg lg:pr-10 max-w-prose text-center lg:text-left text-balance md:text-wrap'>
                 Capture your favorite memories with your own,{' '}
-                <span className='font-semibold'>one-of-one</span> phone case.
-                CaseCobra allows you to protect your memories, not just your
-                phone case.
+                <span className='font-semibold'>one-of-one</span> custom T-Shirt.
+                Osty allows you to wear your memories, not just keep them.
               </p>
 
               <ul className='mt-8 space-y-2 text-left font-medium flex flex-col items-center sm:items-start'>
                 <div className='space-y-2'>
                   <li className='flex gap-1.5 items-center text-left'>
                     <Check className='h-5 w-5 shrink-0 text-green-600' />
-                    High-quality, durable material
+                    High-quality, durable fabric
                   </li>
                   <li className='flex gap-1.5 items-center text-left'>
                     <Check className='h-5 w-5 shrink-0 text-green-600' />5 year
@@ -42,7 +36,7 @@ export default function Home() {
                   </li>
                   <li className='flex gap-1.5 items-center text-left'>
                     <Check className='h-5 w-5 shrink-0 text-green-600' />
-                    Modern iPhone models supported
+                    Available in various sizes
                   </li>
                 </div>
               </ul>
@@ -135,12 +129,12 @@ export default function Home() {
               </div>
               <div className='text-lg leading-8'>
                 <p>
-                  "The case feels durable and I even got a compliment on the
-                  design. Had the case for two and a half months now and{' '}
+                  "The T-Shirt feels durable and I even got a compliment on the
+                  design. Had the T-Shirt for two and a half months now and{' '}
                   <span className='p-0.5 bg-slate-800 text-white'>
-                    the image is super clear
+                    the print is super clear
                   </span>
-                  , on the case I had before, the image started fading into
+                  , on the T-Shirt I had before, the print started fading into
                   yellow-ish color after a couple weeks. Love it."
                 </p>
               </div>
@@ -171,10 +165,9 @@ export default function Home() {
               </div>
               <div className='text-lg leading-8'>
                 <p>
-                  "I usually keep my phone together with my keys in my pocket
-                  and that led to some pretty heavy scratchmarks on all of my
-                  last phone cases. This one, besides a barely noticeable
-                  scratch on the corner,{' '}
+                  "I usually wear my T-Shirts frequently and that led to some
+                  pretty heavy wear on all of my last T-Shirts. This one, besides
+                  a barely noticeable wear on the corner,{' '}
                   <span className='p-0.5 bg-slate-800 text-white'>
                     looks brand new after about half a year
                   </span>
@@ -209,9 +202,9 @@ export default function Home() {
           <div className='mb-12 px-6 lg:px-8'>
             <div className='mx-auto max-w-2xl sm:text-center'>
               <h2 className='order-1 mt-2 tracking-tight text-center text-balance !leading-tight font-bold text-5xl md:text-6xl text-gray-900'>
-                Upload your photo and get{' '}
-                <span className='relative px-2 bg-green-600 text-white'>
-                  your own case
+                Upload your design and get{' '}
+                <span className='relative px-2 bg-black text-white'>
+                  your own T-Shirt
                 </span>{' '}
                 now
               </h2>
@@ -220,12 +213,14 @@ export default function Home() {
 
           <div className='mx-auto max-w-6xl px-6 lg:px-8'>
             <div className='relative flex flex-col items-center md:grid grid-cols-2 gap-40'>
+                {/* eslint-disable-next-line jsx-a11y/alt-text */}
               <img
                 src='/arrow.png'
                 className='absolute top-[25rem] md:top-1/2 -translate-y-1/2 z-10 left-1/2 -translate-x-1/2 rotate-90 md:rotate-0'
               />
 
               <div className='relative h-80 md:h-full w-full md:justify-self-end max-w-sm rounded-xl bg-gray-900/5 ring-inset ring-gray-900/10 lg:rounded-2xl'>
+                 {/* eslint-disable-next-line jsx-a11y/alt-text */}
                 <img
                   src='/horse.jpg'
                   className='rounded-md object-cover bg-white shadow-2xl ring-1 ring-gray-900/10 h-full w-full'
@@ -239,15 +234,15 @@ export default function Home() {
           <ul className='mx-auto mt-12 max-w-prose sm:text-lg space-y-2 w-fit'>
             <li className='w-fit'>
               <Check className='h-5 w-5 text-green-600 inline mr-1.5' />
-              High-quality silicone material
+              High-quality fabric material
             </li>
             <li className='w-fit'>
               <Check className='h-5 w-5 text-green-600 inline mr-1.5' />
-              Scratch- and fingerprint resistant coating
+              Scratch- and stain-resistant coating
             </li>
             <li className='w-fit'>
               <Check className='h-5 w-5 text-green-600 inline mr-1.5' />
-              Wireless charging compatible
+              Machine washable
             </li>
             <li className='w-fit'>
               <Check className='h-5 w-5 text-green-600 inline mr-1.5' />5 year
@@ -260,8 +255,8 @@ export default function Home() {
                   size: 'lg',
                   className: 'mx-auto mt-8',
                 })}
-                href='/configure/upload'>
-                Create your case now <ArrowRight className='h-4 w-4 ml-1.5' />
+                href='/configure/design'>
+                Create your T-Shirt now <ArrowRight className='h-4 w-4 ml-1.5' />
               </Link>
             </div>
           </ul>

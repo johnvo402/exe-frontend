@@ -1,25 +1,43 @@
-'use server'
+"use server";
 
-import { db } from '@/db'
-import { CaseColor, CaseFinish, CaseMaterial, PhoneModel } from '@prisma/client'
+import { db } from "@/db";
+import { ShirtColor, ShirtModel } from "@prisma/client";
 
-export type SaveConfigArgs = {
-  color: CaseColor
-  finish: CaseFinish
-  material: CaseMaterial
-  model: PhoneModel
-  configId: string
-}
+export type CreateConfigArgs = {
+  color: ShirtColor;
+  model: ShirtModel;
+  croppedImageUrl: string;
+  imageUrls: Array<{
+    url: string;
+    height: number;
+    width: number;
+  }>;
+};
 
-export async function saveConfig({
+export async function createConfig({
   color,
-  finish,
-  material,
   model,
-  configId,
-}: SaveConfigArgs) {
-  await db.configuration.update({
-    where: { id: configId },
-    data: { color, finish, material, model },
-  })
+  imageUrls,
+  croppedImageUrl,
+}: CreateConfigArgs): Promise<string> {
+  const config = await db.configuration.create({
+    data: {
+      color,
+      model,
+      croppedImageUrl,
+      ConfigurationImage: {
+        create: imageUrls.map((image) => ({
+          imageUrl: {
+            create: {
+              url: image.url,
+              width: image.width,
+              height: image.height,
+            },
+          },
+        })),
+      },
+    },
+  });
+
+  return config.id;
 }

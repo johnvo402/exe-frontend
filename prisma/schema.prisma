@@ -13,49 +13,45 @@ enum OrderStatus {
   awaiting_shipment
 }
 
-enum PhoneModel {
-  iphonex
-  iphone11
-  iphone12
-  iphone13
-  iphone14
-  iphone15
+enum ShirtModel {
+  t_shirt
+  polo_shirt
 }
 
-enum CaseMaterial {
-  silicone
-  polycarbonate
-}
-
-enum CaseFinish {
-  smooth
-  textured
-}
-
-enum CaseColor {
+enum ShirtColor {
   black
-  blue
-  rose
+  white
 }
 
 model Configuration {
+  id String @id @default(cuid())
+  ConfigurationImage ConfigurationImage[]
+  color              ShirtColor?
+  model              ShirtModel?
+  croppedImageUrl    String?
+  Order              Order[]
+}
+
+model ImageUrl {
+  id                 String               @id @default(cuid())
+  width              Int
+  height             Int
+  url                String
+  ConfigurationImage ConfigurationImage[]
+}
+
+model ConfigurationImage {
   id              String        @id @default(cuid())
-  width           Int
-  height          Int
-  imageUrl        String
-  color           CaseColor?
-  model           PhoneModel?
-  material        CaseMaterial?
-  finish          CaseFinish?
-  croppedImageUrl String?
-  Order           Order[]
+  imageUrl        ImageUrl      @relation(fields: [imageUrlId], references: [id])
+  imageUrlId      String
+  Configuration   Configuration @relation(fields: [configurationId], references: [id])
+  configurationId String
 }
 
 model User {
   id    String  @id @default(cuid())
   email String
   Order Order[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
