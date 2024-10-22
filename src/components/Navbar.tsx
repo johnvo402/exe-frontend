@@ -22,7 +22,7 @@ const Navbar = async () => {
             {user ? (
               <>
                 <Link
-                  href='api/auth/logout'
+                  href='/api/auth/logout'
                   className={buttonVariants({
                     size: 'lg',
                     variant: 'ghost',
@@ -40,7 +40,7 @@ const Navbar = async () => {
                   </Link>
                 ) : null}
                 <Link
-                  href='configure/design'
+                  href='/configure/design'
                   className={buttonVariants({
                     size: 'lg',
                     className: 'hidden sm:flex items-center gap-1',
@@ -52,7 +52,7 @@ const Navbar = async () => {
             ) : (
               <>
                 <Link
-                  href='api/auth/register'
+                  href='/api/auth/register'
                   className={buttonVariants({
                     size: 'lg',
                     variant: 'ghost',
@@ -61,7 +61,7 @@ const Navbar = async () => {
                 </Link>
 
                 <Link
-                  href='api/auth/login'
+                  href='/api/auth/login'
                   className={buttonVariants({
                     size: 'lg',
                     variant: 'ghost',
@@ -72,7 +72,7 @@ const Navbar = async () => {
                 <div className='h-8 w-px bg-zinc-200 hidden sm:block' />
 
                 <Link
-                  href='configure/design'
+                  href='/configure/design'
                   className={buttonVariants({
                     size: 'lg',
                     className: 'hidden sm:flex items-center gap-1',
