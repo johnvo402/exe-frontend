@@ -42,7 +42,7 @@ export const createOrder = async ({ configId }: { configId: string }) => {
     // Create a new order if no existing one is found
     order = await db.order.create({
       data: {
-        amount: price / 100, // Ensure the amount is in the correct format (e.g., dollars instead of cents)
+        amount: price, // Ensure the amount is in the correct format (e.g., dollars instead of cents)
         userId: user.id,
         configurationId: configuration.id,
       },

@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Check, ChevronsUpDown } from 'lucide-react';
-import { BASE_PRICE } from '@/config/products';
+import { BASE_PRICE, PRODUCT_PRICES } from '@/config/products';
 // import { useUploadThing } from "@/lib/uploadthing";
 import { useToast } from '@/components/ui/use-toast';
 import { useMutation } from '@tanstack/react-query';
@@ -489,7 +489,7 @@ const DesignConfigurator = () => {
           <div className="w-full h-full flex justify-end items-center">
             <div className="w-full flex gap-6 items-center">
               <p className="font-medium whitespace-nowrap">
-                {formatPrice(BASE_PRICE)}
+                {formatPrice(BASE_PRICE + PRODUCT_PRICES.model[options.model.value])}
               </p>
               <Button
                 isLoading={isPending}

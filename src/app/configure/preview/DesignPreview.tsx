@@ -34,7 +34,7 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
     ({ value }) => value === model
   )!
 
-  let totalPrice = BASE_PRICE
+  let totalPrice = BASE_PRICE + (PRODUCT_PRICES.model[model] || 0)
 
   const { mutate: createOrders } = useMutation({
     mutationKey: ['get-checkout-session'],
@@ -124,16 +124,29 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
                 <div className='flex items-center justify-between py-1 mt-2'>
                   <p className='text-gray-600'>Base price</p>
                   <p className='font-medium text-gray-900'>
-                    {formatPrice(BASE_PRICE / 100)}
+                    {formatPrice(BASE_PRICE)}
+                  </p>
+                </div>
+                
+                <div className='flex items-center justify-between py-2'>
+                  <p className='text-gray-600'>Color</p>
+                  <p className='font-medium text-gray-900'>
+                    {COLORS.find((supportedColor) => supportedColor.value === color)?.label}
                   </p>
                 </div>
 
-                <div className='my-2 h-px bg-gray-200' />
+                <div className='flex items-center justify-between py-2'>
+                  <p className='text-gray-600'>Model</p>
+                  <p className='font-medium text-gray-900'>
+                    {modelLabel}
+                  </p>
+                </div>
+                
 
                 <div className='flex items-center justify-between py-2'>
                   <p className='font-semibold text-gray-900'>Order total</p>
                   <p className='font-semibold text-gray-900'>
-                    {formatPrice(totalPrice / 100)}
+                    {formatPrice(totalPrice)}
                   </p>
                 </div>
               </div>

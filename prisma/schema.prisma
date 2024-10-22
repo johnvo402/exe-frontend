@@ -26,8 +26,8 @@ enum ShirtColor {
 model Configuration {
   id String @id @default(cuid())
   ConfigurationImage ConfigurationImage[]
-  color              ShirtColor?
-  model              ShirtModel?
+  color              ShirtColor
+  model              ShirtModel
   croppedImageUrl    String?
   Order              Order[]
   createdAt          DateTime @default(now())
