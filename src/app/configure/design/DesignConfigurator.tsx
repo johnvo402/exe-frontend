@@ -1,132 +1,139 @@
-"use client";
+'use client';
 
-import HandleComponent from "@/components/HandleComponent";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn, formatPrice } from "@/lib/utils";
-import NextImage from "next/image";
-import { Rnd } from "react-rnd";
-import { RadioGroup } from "@headlessui/react";
-import { startTransition, useRef, useState, useEffect } from "react";
-import { COLORS, MODELS } from "@/validators/option-validator";
-import { Label } from "@/components/ui/label";
+import HandleComponent from '@/components/HandleComponent';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { ScrollArea } from '@/components/ui/scroll-area';
+// import PhotoGalleryPopup from '@/components/PhotoGalleryPopup';
+import { cn, formatPrice } from '@/lib/utils';
+import NextImage from 'next/image';
+import { Rnd } from 'react-rnd';
+import { RadioGroup } from '@headlessui/react';
+import { useRef, useState, useEffect } from 'react';
+import { COLORS, MODELS } from '@/validators/option-validator';
+import { Label } from '@/components/ui/label';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Check, ChevronsUpDown } from "lucide-react";
-import { BASE_PRICE } from "@/config/products";
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { ArrowRight, Check, ChevronsUpDown } from 'lucide-react';
+import { BASE_PRICE } from '@/config/products';
 // import { useUploadThing } from "@/lib/uploadthing";
-import { useToast } from "@/components/ui/use-toast";
-import { useMutation } from "@tanstack/react-query";
-import { createConfig as _createConfig, CreateConfigArgs } from "./actions";
-import { useRouter } from "next/navigation";
-import Dropzone, { FileRejection } from "react-dropzone";
-import { db } from "@/db";
+import { useToast } from '@/components/ui/use-toast';
+import { useMutation } from '@tanstack/react-query';
+import { createConfig as _createConfig, CreateConfigArgs } from './actions';
+import { useRouter } from 'next/navigation';
+import Dropzone, { FileRejection } from 'react-dropzone';
+import { uploadFiles, useUploadThing } from '@/lib/uploadthing';
+import { v4 as uuidv4 } from 'uuid';
 
 interface DesignConfigurator {
-  images: Array<{
-    url: string;
-    width: number;
-    height: number;
-  }>;
+  url: string;
+  width: number;
+  height: number;
+  x: number;
+  y: number;
+  id: string;
 }
 
 const DesignConfigurator = () => {
-  const [images, setImages] = useState<DesignConfigurator["images"]>([]);
-  const [imagePositions, setImagePositions] = useState<
-    { x: number; y: number; width: number; height: number }[]
-  >([]);
-  const [history, setHistory] = useState<
-    {
-      images: DesignConfigurator["images"];
-      imagePositions: { x: number; y: number; width: number; height: number }[];
-    }[]
-  >([]);
+  const [images, setImages] = useState<DesignConfigurator[]>([]);
+  const [isPhotoGalleryOpen, setIsPhotoGalleryOpen] = useState(false);
+
+  // const [history, setHistory] = useState<
+  //   {
+  //     images: DesignConfigurator['images'];
+  //     imagePositions: { x: number; y: number; width: number; height: number }[];
+  //   }[]
+  // >([]);
   const { toast } = useToast();
   const router = useRouter();
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const [isShiftPressed, setIsShiftPressed] = useState(false);
 
   useEffect(() => {
-    setImagePositions(
-      images.map(() => ({
-        x: 200,
-        y: 205,
-        width: 0,
-        height: 0,
-      }))
-    );
+    saveConfiguration();
   }, [images]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Shift") {
+      if (event.key === 'Shift') {
         setIsShiftPressed(true);
       }
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
-      if (event.key === "Shift") {
+      if (event.key === 'Shift') {
         setIsShiftPressed(false);
       }
     };
 
     // Add keydown and keyup event listeners
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
 
     // Clean up event listeners when component is unmounted
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [history]);
+  }, []);
 
   const onDropRejected = (rejectedFiles: FileRejection[]) => {
     const [file] = rejectedFiles;
     setIsDragOver(false);
     toast({
       title: `${file.file.type} type is not supported.`,
-      description: "Please choose a PNG, JPG, or JPEG image instead.",
-      variant: "destructive",
+      description: 'Please choose a PNG, JPG, or JPEG image instead.',
+      variant: 'destructive',
     });
   };
+  const addImage = (newImages: DesignConfigurator[]) => {
+    console.log('Adding images:', newImages); // Debugging log
+    setImages((prev) => [
+      ...prev,
+      ...newImages.map((image) => ({ ...image, id: uuidv4() })), // Add unique id
+    ]);
+  };
 
-  const onDropAccepted = (acceptedFiles: File[]) => {
-    const newImages = acceptedFiles.map((file) => ({
-      id: file.name,
-      url: URL.createObjectURL(file),
-      width: file.size,
-      height: file.size,
-    }));
-    setImages(newImages);
-
+  const onDropAccepted = async (acceptedFiles: File[]) => {
+    acceptedFiles.forEach((file) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.src = url;
+      img.onload = () => {
+        addImage([
+          {
+            url,
+            width: img.width,
+            height: img.height,
+            x: 200,
+            y: 205,
+            id: uuidv4(),
+          },
+        ]);
+      };
+    });
     setIsDragOver(false);
   };
 
   const { mutate: createConfig, isPending } = useMutation({
-    mutationKey: ["create-config"],
+    mutationKey: ['create-config'],
     mutationFn: async (args: CreateConfigArgs) => {
-      const customImage = localStorage.getItem("customImage");
+      const customImage = localStorage.getItem('customImage');
       if (!customImage)
-        throw new Error("Custom image not found in localStorage.");
+        throw new Error('Custom image not found in localStorage.');
       args.croppedImageUrl = customImage;
-      // Execute both saveConfiguration and _createConfig in parallel
-      const [_, id] = await Promise.all([
-        saveConfiguration(),
-        _createConfig(args),
-      ]);
-      return id; // Return the config ID from _createConfig
+      const id = await _createConfig(args);
+      return id;
     },
     onError: () => {
       toast({
-        title: "Something went wrong",
-        description: "There was an error on our end. Please try again.",
-        variant: "destructive",
+        title: 'Something went wrong',
+        description: 'There was an error on our end. Please try again.',
+        variant: 'destructive',
       });
     },
     onSuccess: (id) => {
@@ -151,8 +158,8 @@ const DesignConfigurator = () => {
       const {
         left: caseLeft,
         top: caseTop,
-        width,
-        height,
+        width: caseWidth,
+        height: caseHeight,
       } = phoneCaseRef.current!.getBoundingClientRect();
 
       const { left: containerLeft, top: containerTop } =
@@ -161,57 +168,50 @@ const DesignConfigurator = () => {
       const leftOffset = caseLeft - containerLeft;
       const topOffset = caseTop - containerTop;
 
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
+      const canvas = document.createElement('canvas');
+      canvas.width = caseWidth;
+      canvas.height = caseHeight;
+      const ctx = canvas.getContext('2d');
 
       const backgroundImage = new Image();
-      backgroundImage.crossOrigin = "anonymous";
-      backgroundImage.src = "/template-front.png";
+      backgroundImage.crossOrigin = 'anonymous';
+      backgroundImage.src = '/template-front.png';
       await new Promise((resolve) => (backgroundImage.onload = resolve));
 
-      ctx?.drawImage(backgroundImage, 0, 0, width, height);
+      ctx?.drawImage(backgroundImage, 0, 0, caseWidth, caseHeight);
 
       for (let i = 0; i < images.length; i++) {
         const image = images[i];
-        const { x, y, width, height } = imagePositions[i];
 
         const userImage = new Image();
-        userImage.crossOrigin = "anonymous";
+        userImage.crossOrigin = 'anonymous';
         userImage.src = image.url;
         await new Promise((resolve) => (userImage.onload = resolve));
 
-        ctx?.drawImage(userImage, x - leftOffset, y - topOffset, width, height);
+        // Adjust the position and size of the image
+        ctx?.drawImage(
+          userImage,
+          image.x - leftOffset,
+          image.y - topOffset,
+          image.width / 4,
+          image.height / 4,
+        );
       }
 
-      const base64 = canvas.toDataURL();
-
-      localStorage.setItem("customImage", base64);
-
-      toast({
-        title: "Configuration saved locally",
-        description: "Your design has been saved locally.",
-        variant: "default",
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          localStorage.setItem('customImage', url);
+        }
       });
     } catch (err) {
       toast({
-        title: "Something went wrong",
+        title: 'Something went wrong',
         description:
-          "There was a problem saving your config, please try again.",
-        variant: "destructive",
+          'There was a problem saving your config, please try again.',
+        variant: 'destructive',
       });
     }
-  }
-
-  function base64ToBlob(base64: string, mimeType: string) {
-    const byteCharacters = atob(base64);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-    return new Blob([byteArray], { type: mimeType });
   }
 
   return (
@@ -220,9 +220,9 @@ const DesignConfigurator = () => {
         onDropRejected={onDropRejected}
         onDropAccepted={onDropAccepted}
         accept={{
-          "image/png": [".png"],
-          "image/jpeg": [".jpeg"],
-          "image/jpg": [".jpg"],
+          'image/png': ['.png'],
+          'image/jpeg': ['.jpeg'],
+          'image/jpg': ['.jpg'],
         }}
         onDragEnter={() => setIsDragOver(true)}
         onDragLeave={() => setIsDragOver(false)}
@@ -237,7 +237,7 @@ const DesignConfigurator = () => {
             <input {...getInputProps()} />
             <div
               className="relative bg-opacity-50 pointer-events-none aspect-[2000/2000]"
-              style={{ width: "36rem" }}
+              style={{ width: '36rem' }}
             >
               <AspectRatio
                 ref={phoneCaseRef}
@@ -255,13 +255,13 @@ const DesignConfigurator = () => {
               <div className="absolute z-40 inset-0 left-[3px] top-px right-[3px] bottom-px rounded-[32px] shadow-[0_0_0_99999px_rgba(229,231,235,0.6)]" />
               <div
                 className={cn(
-                  "absolute inset-0 left-[3px] top-px right-[3px] bottom-px rounded-[32px]"
+                  'absolute inset-0 left-[3px] top-px right-[3px] bottom-px rounded-[32px]',
                 )}
               />
             </div>
-            {images.map(({ url, width, height }, index) => (
+            {images.map(({ url, width, height, id }, index) => (
               <Rnd
-                key={url}
+                key={id} // Use the unique id as the key
                 default={{
                   x: 250,
                   y: 205,
@@ -272,12 +272,12 @@ const DesignConfigurator = () => {
                   const newHeight = parseInt(ref.style.height.slice(0, -2));
                   const newWidth = parseInt(ref.style.width.slice(0, -2));
 
-                  setImagePositions((prev) => {
+                  setImages((prev) => {
                     // Ensure prev is an array before proceeding
                     if (!Array.isArray(prev)) {
                       console.error(
-                        "Expected prev to be an array, but got:",
-                        prev
+                        'Expected prev to be an array, but got:',
+                        prev,
                       );
                       return prev; // Safely return if not an array
                     }
@@ -285,15 +285,17 @@ const DesignConfigurator = () => {
                     // Correctly map and update positions
                     return prev.map((pos, i) =>
                       i === index
-                        ? { x, y, width: newWidth, height: newHeight }
-                        : pos
+                        ? { ...pos, x, y, width: newWidth, height: newHeight } // Include all properties
+                        : pos,
                     );
                   });
                 }}
                 onDragStop={(_, data) => {
                   const { x, y } = data;
-
-                  // Use updateImagePosition function
+                  console.log('id', id);
+                  setImages((prev) =>
+                    prev.map((pos) => (pos.id === id ? { ...pos, x, y } : pos)),
+                  );
                 }}
                 className="absolute z-50 border-[3px] border-primary"
                 lockAspectRatio={isShiftPressed}
@@ -306,10 +308,7 @@ const DesignConfigurator = () => {
                       <button
                         onClick={() => {
                           setImages((prevImages) =>
-                            prevImages.filter((_, i) => i !== index)
-                          );
-                          setImagePositions((prevPositions) =>
-                            prevPositions.filter((_, i) => i !== index)
+                            prevImages.filter((_, i) => i !== index),
                           );
                         }}
                         className="absolute -top-5 -right-5 text-black p-1 rounded-full"
@@ -350,36 +349,31 @@ const DesignConfigurator = () => {
             <div className="flex justify-center items-center mt-4">
               <Button
                 onClick={() => {
-                  const fileInput = document.createElement("input");
-                  fileInput.type = "file";
-                  fileInput.accept = "image/*";
+                  const fileInput = document.createElement('input');
+                  fileInput.type = 'file';
+                  fileInput.accept = 'image/png, image/jpeg, image/jpg';
+                  fileInput.multiple = true;
                   fileInput.click();
-                  fileInput.addEventListener("change", (e) => {
+                  fileInput.addEventListener('change', (e) => {
                     const files = (e.target as HTMLInputElement).files;
                     if (files) {
-                      const reader = new FileReader();
-                      const file = files[0];
-
-                      reader.readAsDataURL(file); // Convert file to base64
-                      reader.onloadend = () => {
-                        const base64String = reader.result as string;
-
-                        // Store base64 string in localStorage
-                        localStorage.setItem("uploadedImage", base64String);
-
+                      Array.from(files).forEach((file) => {
+                        const url = URL.createObjectURL(file);
                         const img = new Image();
-                        img.src = base64String;
-                        img.onload = () => {
-                          setImages((prevImages) => [
-                            ...prevImages,
+                        img.src = url;
+                        img.onload = async () => {
+                          addImage([
                             {
-                              url: base64String,
+                              url,
                               width: img.width,
                               height: img.height,
+                              x: 200,
+                              y: 205,
+                              id: uuidv4(),
                             },
                           ]);
                         };
-                      };
+                      });
                     }
                   });
                 }}
@@ -420,17 +414,17 @@ const DesignConfigurator = () => {
                         value={color}
                         className={({ active, checked }) =>
                           cn(
-                            "relative -m-0.5 flex cursor-pointer items-center justify-center rounded-full p-0.5 active:ring-0 focus:ring-0 active:outline-none focus:outline-none border-2 border-transparent",
+                            'relative -m-0.5 flex cursor-pointer items-center justify-center rounded-full p-0.5 active:ring-0 focus:ring-0 active:outline-none focus:outline-none border-2 border-transparent',
                             {
                               [`border-${color.tw}`]: active || checked,
-                            }
+                            },
                           )
                         }
                       >
                         <span
                           className={cn(
                             `bg-${color.tw}`,
-                            "h-8 w-8 rounded-full border border-black border-opacity-10"
+                            'h-8 w-8 rounded-full border border-black border-opacity-10',
                           )}
                         />
                       </RadioGroup.Option>
@@ -456,11 +450,11 @@ const DesignConfigurator = () => {
                         <DropdownMenuItem
                           key={model.label}
                           className={cn(
-                            "flex text-sm gap-1 items-center p-1.5 cursor-default hover:bg-zinc-100",
+                            'flex text-sm gap-1 items-center p-1.5 cursor-default hover:bg-zinc-100',
                             {
-                              "bg-zinc-100":
+                              'bg-zinc-100':
                                 model.label === options.model.label,
-                            }
+                            },
                           )}
                           onClick={() => {
                             setOptions((prev) => ({ ...prev, model }));
@@ -468,10 +462,10 @@ const DesignConfigurator = () => {
                         >
                           <Check
                             className={cn(
-                              "mr-2 h-4 w-4",
+                              'mr-2 h-4 w-4',
                               model.label === options.model.label
-                                ? "opacity-100"
-                                : "opacity-0"
+                                ? 'opacity-100'
+                                : 'opacity-0',
                             )}
                           />
                           {model.label}
@@ -482,6 +476,11 @@ const DesignConfigurator = () => {
                 </div>
               </div>
             </div>
+            {/* <div className="mt-4">
+              <Button onClick={() => setIsPhotoGalleryOpen(true)}>
+                View Added Photos
+              </Button>
+            </div> */}
           </div>
         </ScrollArea>
 
@@ -503,7 +502,7 @@ const DesignConfigurator = () => {
                     imageUrls: images.map((image) => ({
                       ...image,
                     })),
-                    croppedImageUrl: "",
+                    croppedImageUrl: '',
                   })
                 }
                 size="sm"
@@ -516,6 +515,11 @@ const DesignConfigurator = () => {
           </div>
         </div>
       </div>
+      {/* <PhotoGalleryPopup
+        isOpen={isPhotoGalleryOpen}
+        onClose={() => setIsPhotoGalleryOpen(false)}
+        photos={images}
+      /> */}
     </div>
   );
 };
