@@ -21,7 +21,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Check, ChevronsUpDown } from 'lucide-react';
 import { BASE_PRICE, PRODUCT_PRICES } from '@/config/products';
 // import { useUploadThing } from "@/lib/uploadthing";
-import { useToast } from '@/components/ui/use-toast';
+import { toast, useToast } from '@/components/ui/use-toast';
 import { useMutation } from '@tanstack/react-query';
 import { createConfig as _createConfig, CreateConfigArgs } from './actions';
 import { useRouter } from 'next/navigation';
@@ -32,7 +32,7 @@ import { ShirtSide } from '@prisma/client';
 
 //định nghĩa kiểu dữ liệu cho images
 interface DesignConfigurator {
-  file: File;
+  url: string;
   width: number;
   height: number;
   x: number;
@@ -41,11 +41,11 @@ interface DesignConfigurator {
   side: ShirtSide;
 }
 interface UploadedImage {
-  file: File;
+  url: string;
 }
 interface CroppedImage {
   side: string;
-  file: File;
+  url: string;
 }
 
 const DesignConfigurator = () => {
@@ -56,10 +56,17 @@ const DesignConfigurator = () => {
   const router = useRouter();
   //state để kiểm tra việc kéo thả hình ảnh
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
   //state để kiểm tra việc nhấn phím shift
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const { startUpload } = useUploadThing('imageUploader');
 
+  useEffect(() => {
+    if (!isDragging) {
+      saveConfiguration();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [images]);
   useEffect(() => {
     //hàm kiểm tra việc nhấn phím shift
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -103,7 +110,7 @@ const DesignConfigurator = () => {
     ]);
   };
 
-  //hàm xử lý khi file được chấp nhận
+  //hàm xử lý khi file được chấp nh��n
   const onDropAccepted = async (acceptedFiles: File[]) => {
     acceptedFiles.forEach((file) => {
       const img = new Image();
@@ -111,7 +118,7 @@ const DesignConfigurator = () => {
       img.onload = () => {
         addImage([
           {
-            file,
+            url: img.src,
             width: img.width,
             height: img.height,
             x: 200,
@@ -130,13 +137,14 @@ const DesignConfigurator = () => {
     mutationKey: ['create-config'],
     mutationFn: async () => {
       try {
-        saveConfiguration();
         const args: CreateConfigArgs = {
           color: options.color.value,
           model: options.model.value,
           imageUrls: [],
           croppedImages: [],
         };
+
+        // Validate presence of images and cropped images
         if (!croppedImages.length) {
           throw new Error('Custom image not found in localStorage.');
         }
@@ -150,16 +158,18 @@ const DesignConfigurator = () => {
           throw new Error('No images were uploaded successfully.');
         }
 
-        // 2. Update args with uploaded image URLs
+        // 2. Update args with uploaded cropped image URLs
         args.croppedImages = uploadedUrls.map((url, index) => ({
           side: croppedImages[index].side as ShirtSide,
           url,
         }));
+
         // 3. Upload images and get their URLs
         const uploadedImagesUrls = await uploadImages(images);
         if (uploadedImagesUrls.length === 0) {
           throw new Error('No images were uploaded successfully.');
         }
+
         // 4. Update args with uploaded image URLs
         args.imageUrls = uploadedImagesUrls.map((url, index) => ({
           url,
@@ -167,6 +177,7 @@ const DesignConfigurator = () => {
           height: images[index].height,
           side: images[index].side,
         }));
+
         // 5. Create configuration in the database
         const id = await _createConfig(args);
         return id;
@@ -176,7 +187,7 @@ const DesignConfigurator = () => {
     },
     onError: (error) => {
       toast({
-        title: 'Something went wrong',
+        title: 'Lỗi cấu hình',
         description: 'There was an error on our end. Please try again.',
         variant: 'destructive',
       });
@@ -186,20 +197,26 @@ const DesignConfigurator = () => {
     },
   });
 
+  // Add a delay for mutation trigger if needed
+  const handleCreateConfig = () => {
+    setTimeout(() => createConfig(), 1000);
+  };
+
   // Upload cropped images function
   const uploadCroppedImages = async (croppedImages: UploadedImage[]) => {
     try {
       const uploadedUrls = await Promise.all(
         croppedImages.map(async (uploadedImage) => {
-          const formData = new FormData();
-          formData.append('file', uploadedImage.file);
+          const response = await fetch(uploadedImage.url);
+          const blob = await response.blob();
+          const file = new File([blob], 'image.png', { type: blob.type });
 
-          const response = await startUpload([uploadedImage.file]);
-          if (!response || !response[0]?.url) {
+          const uploadResponse = await startUpload([file]);
+          if (!uploadResponse || !uploadResponse[0]?.url) {
             throw new Error('Failed to upload image');
           }
 
-          const { url } = response[0];
+          const { url } = uploadResponse[0];
           return url;
         }),
       );
@@ -220,15 +237,16 @@ const DesignConfigurator = () => {
     try {
       const uploadedUrls = await Promise.all(
         images.map(async (uploadedImage) => {
-          const formData = new FormData();
-          formData.append('file', uploadedImage.file);
+          const response = await fetch(uploadedImage.url);
+          const blob = await response.blob();
+          const file = new File([blob], 'image.png', { type: blob.type });
 
-          const response = await startUpload([uploadedImage.file]);
-          if (!response || !response[0]?.url) {
+          const uploadResponse = await startUpload([file]); // Pass the File object
+          if (!uploadResponse || !uploadResponse[0]?.url) {
             throw new Error('Failed to upload image');
           }
 
-          const { url } = response[0];
+          const { url } = uploadResponse[0];
           return url;
         }),
       );
@@ -295,7 +313,7 @@ const DesignConfigurator = () => {
 
         const userImage = new Image();
         userImage.crossOrigin = 'anonymous';
-        userImage.src = URL.createObjectURL(image.file);
+        userImage.src = image.url;
         await new Promise((resolve) => (userImage.onload = resolve));
 
         //điều chỉnh vị trí và kích thước của hình ảnh
@@ -323,7 +341,8 @@ const DesignConfigurator = () => {
         'filename' + new Date().getTime() + '.png',
         { type: 'image/png' },
       );
-      setCroppedImages([{ side: 'front', file }]);
+      const blobUrl = URL.createObjectURL(blob);
+      setCroppedImages([{ side: 'front', url: blobUrl }]);
     } catch (err) {
       toast({
         title: 'Something went wrong',
@@ -380,7 +399,7 @@ const DesignConfigurator = () => {
                 )}
               />
             </div>
-            {images.map(({ file, width, height, id }, index) => (
+            {images.map(({ url, width, height, id }, index) => (
               <Rnd
                 key={id} // Use the unique id as the key
                 default={{
@@ -407,11 +426,13 @@ const DesignConfigurator = () => {
                     );
                   });
                 }}
+                onDragStart={() => setIsDragging(true)}
                 onDragStop={(_, data) => {
                   const { x, y } = data;
                   setImages((prev) =>
                     prev.map((pos) => (pos.id === id ? { ...pos, x, y } : pos)),
                   );
+                  setIsDragging(false);
                 }}
                 className="absolute z-20 border-[3px] border-primary"
                 lockAspectRatio={isShiftPressed}
@@ -439,7 +460,7 @@ const DesignConfigurator = () => {
                 <div className="relative w-full h-full">
                   <NextImage
                     key={id}
-                    src={URL.createObjectURL(file)}
+                    src={url}
                     fill
                     alt="your image"
                     className="pointer-events-none"
@@ -479,7 +500,7 @@ const DesignConfigurator = () => {
                         img.onload = async () => {
                           addImage([
                             {
-                              file,
+                              url: img.src,
                               width: img.width,
                               height: img.height,
                               x: 200,
@@ -521,6 +542,7 @@ const DesignConfigurator = () => {
                       color: val,
                     }));
                   }}
+                  aria-label="Color selection" // Add accessible name
                 >
                   <Label>Color: {options.color.label}</Label>
                   <div className="mt-3 flex items-center space-x-3">
@@ -536,6 +558,7 @@ const DesignConfigurator = () => {
                             },
                           )
                         }
+                        aria-label={`Select ${color.label} color`} // Add accessible name
                       >
                         <span
                           className={cn(
@@ -556,6 +579,7 @@ const DesignConfigurator = () => {
                         variant="outline"
                         role="combobox"
                         className="w-full justify-between"
+                        aria-label="Model selection" // Add accessible name
                       >
                         {options.model.label}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -575,6 +599,7 @@ const DesignConfigurator = () => {
                           onClick={() => {
                             setOptions((prev) => ({ ...prev, model }));
                           }}
+                          aria-label={`Select ${model.label} model`} // Add accessible name
                         >
                           <Check
                             className={cn(
@@ -613,7 +638,7 @@ const DesignConfigurator = () => {
                 isLoading={isPending}
                 disabled={isPending}
                 loadingText="Saving"
-                onClick={() => createConfig()}
+                onClick={handleCreateConfig}
                 size="sm"
                 className="w-full"
               >
