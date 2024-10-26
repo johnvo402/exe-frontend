@@ -1,11 +1,11 @@
 'use client'
 
-import Phone from '@/components/Phone'
+import TShirt from '@/components/TShirt'
 import { Button } from '@/components/ui/button'
 import { BASE_PRICE, PRODUCT_PRICES } from '@/config/products'
 import { cn, formatPrice } from '@/lib/utils'
 import { COLORS, MODELS } from '@/validators/option-validator'
-import { Configuration } from '@prisma/client'
+import { ShirtModel, ShirtColor } from '@prisma/client'
 import { useMutation } from '@tanstack/react-query'
 import { ArrowRight, Check } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -16,6 +16,14 @@ import { useToast } from '@/components/ui/use-toast'
 import { useKindeBrowserClient } from '@kinde-oss/kinde-auth-nextjs'
 import LoginModal from '@/components/LoginModal'
 
+interface Configuration {
+  id: string;
+  color: ShirtColor;
+  model: ShirtModel;
+  createdAt: Date;
+  updatedAt: Date;
+  croppedImages: { url: string }[]; // Add this line
+}
 const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
   const router = useRouter()
   const { toast } = useToast()
@@ -82,9 +90,9 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
 
       <div className='mt-20 flex flex-col items-center md:grid text-sm sm:grid-cols-12 sm:grid-rows-1 sm:gap-x-6 md:gap-x-8 lg:gap-x-12'>
         <div className='md:col-span-4 lg:col-span-3 md:row-span-2 md:row-end-2'>
-          <Phone
+          <TShirt
             className={cn(`bg-${tw}`, "max-w-[150px] md:max-w-full")}
-            imgSrc={configuration.croppedImageUrl!}
+            imgSrc={configuration.croppedImages[0]!.url}
           />
         </div>
 

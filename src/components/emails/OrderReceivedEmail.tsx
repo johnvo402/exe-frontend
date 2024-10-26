@@ -25,7 +25,7 @@ const OrderReceivedEmail = ({
 }) => {
   const baseUrl =
     process.env.NODE_ENV === 'development'
-      ? 'https://exe-frontend-exe-osty.vercel.app'
+      ? 'http://localhost:3000'
       : 'https://osty.store';
 
   return (

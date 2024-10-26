@@ -28,36 +28,40 @@ import { useRouter } from 'next/navigation';
 import Dropzone, { FileRejection } from 'react-dropzone';
 import { uploadFiles, useUploadThing } from '@/lib/uploadthing';
 import { v4 as uuidv4 } from 'uuid';
+import { ShirtSide } from '@prisma/client';
 
+//định nghĩa kiểu dữ liệu cho images
 interface DesignConfigurator {
-  url: string;
+  file: File;
   width: number;
   height: number;
   x: number;
   y: number;
   id: string;
+  side: ShirtSide;
+}
+interface UploadedImage {
+  file: File;
+}
+interface CroppedImage {
+  side: string;
+  file: File;
 }
 
 const DesignConfigurator = () => {
+  //state để lưu trữ các hình ảnh
   const [images, setImages] = useState<DesignConfigurator[]>([]);
-  const [isPhotoGalleryOpen, setIsPhotoGalleryOpen] = useState(false);
-
-  // const [history, setHistory] = useState<
-  //   {
-  //     images: DesignConfigurator['images'];
-  //     imagePositions: { x: number; y: number; width: number; height: number }[];
-  //   }[]
-  // >([]);
+  const [croppedImages, setCroppedImages] = useState<CroppedImage[]>([]);
   const { toast } = useToast();
   const router = useRouter();
+  //state để kiểm tra việc kéo thả hình ảnh
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
+  //state để kiểm tra việc nhấn phím shift
   const [isShiftPressed, setIsShiftPressed] = useState(false);
+  const { startUpload } = useUploadThing('imageUploader');
 
   useEffect(() => {
-    saveConfiguration();
-  }, [images]);
-
-  useEffect(() => {
+    //hàm kiểm tra việc nhấn phím shift
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Shift') {
         setIsShiftPressed(true);
@@ -70,17 +74,18 @@ const DesignConfigurator = () => {
       }
     };
 
-    // Add keydown and keyup event listeners
+    //thêm các sự kiện khi nhấn phím
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
 
-    // Clean up event listeners when component is unmounted
+    //xóa các sự kiện khi component bị unmount
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
   }, []);
 
+  //hàm xử lý khi file không được chấp nhận
   const onDropRejected = (rejectedFiles: FileRejection[]) => {
     const [file] = rejectedFiles;
     setIsDragOver(false);
@@ -90,28 +95,29 @@ const DesignConfigurator = () => {
       variant: 'destructive',
     });
   };
+  //hàm thêm hình ảnh
   const addImage = (newImages: DesignConfigurator[]) => {
-    console.log('Adding images:', newImages); // Debugging log
     setImages((prev) => [
       ...prev,
       ...newImages.map((image) => ({ ...image, id: uuidv4() })), // Add unique id
     ]);
   };
 
+  //hàm xử lý khi file được chấp nhận
   const onDropAccepted = async (acceptedFiles: File[]) => {
     acceptedFiles.forEach((file) => {
-      const url = URL.createObjectURL(file);
       const img = new Image();
-      img.src = url;
+      img.src = URL.createObjectURL(file);
       img.onload = () => {
         addImage([
           {
-            url,
+            file,
             width: img.width,
             height: img.height,
             x: 200,
             y: 205,
             id: uuidv4(),
+            side: 'front',
           },
         ]);
       };
@@ -119,17 +125,56 @@ const DesignConfigurator = () => {
     setIsDragOver(false);
   };
 
+  //hàm xử lý khi tạo cấu hình
   const { mutate: createConfig, isPending } = useMutation({
     mutationKey: ['create-config'],
-    mutationFn: async (args: CreateConfigArgs) => {
-      const customImage = localStorage.getItem('customImage');
-      if (!customImage)
-        throw new Error('Custom image not found in localStorage.');
-      args.croppedImageUrl = customImage;
-      const id = await _createConfig(args);
-      return id;
+    mutationFn: async () => {
+      try {
+        saveConfiguration();
+        const args: CreateConfigArgs = {
+          color: options.color.value,
+          model: options.model.value,
+          imageUrls: [],
+          croppedImages: [],
+        };
+        if (!croppedImages.length) {
+          throw new Error('Custom image not found in localStorage.');
+        }
+        if (!images.length) {
+          throw new Error('Custom image not found in localStorage.');
+        }
+
+        // 1. Upload cropped images and get their URLs
+        const uploadedUrls = await uploadCroppedImages(croppedImages);
+        if (uploadedUrls.length === 0) {
+          throw new Error('No images were uploaded successfully.');
+        }
+
+        // 2. Update args with uploaded image URLs
+        args.croppedImages = uploadedUrls.map((url, index) => ({
+          side: croppedImages[index].side as ShirtSide,
+          url,
+        }));
+        // 3. Upload images and get their URLs
+        const uploadedImagesUrls = await uploadImages(images);
+        if (uploadedImagesUrls.length === 0) {
+          throw new Error('No images were uploaded successfully.');
+        }
+        // 4. Update args with uploaded image URLs
+        args.imageUrls = uploadedImagesUrls.map((url, index) => ({
+          url,
+          width: images[index].width,
+          height: images[index].height,
+          side: images[index].side,
+        }));
+        // 5. Create configuration in the database
+        const id = await _createConfig(args);
+        return id;
+      } catch (error) {
+        throw error; // Re-throw to trigger onError
+      }
     },
-    onError: () => {
+    onError: (error) => {
       toast({
         title: 'Something went wrong',
         description: 'There was an error on our end. Please try again.',
@@ -137,11 +182,80 @@ const DesignConfigurator = () => {
       });
     },
     onSuccess: (id) => {
-      // Use the configuration ID to redirect to the preview page
       router.push(`/configure/preview?id=${id}`);
     },
   });
 
+  // Upload cropped images function
+  const uploadCroppedImages = async (croppedImages: UploadedImage[]) => {
+    try {
+      const uploadedUrls = await Promise.all(
+        croppedImages.map(async (uploadedImage) => {
+          const formData = new FormData();
+          formData.append('file', uploadedImage.file);
+
+          const response = await startUpload([uploadedImage.file]);
+          if (!response || !response[0]?.url) {
+            throw new Error('Failed to upload image');
+          }
+
+          const { url } = response[0];
+          return url;
+        }),
+      );
+
+      return uploadedUrls; // Return the uploaded URLs
+    } catch (error) {
+      toast({
+        title: 'Upload Error',
+        description:
+          'There was an error uploading your images. Please try again.',
+        variant: 'destructive',
+      });
+      return []; // Return an empty array on error
+    }
+  };
+
+  const uploadImages = async (images: UploadedImage[]) => {
+    try {
+      const uploadedUrls = await Promise.all(
+        images.map(async (uploadedImage) => {
+          const formData = new FormData();
+          formData.append('file', uploadedImage.file);
+
+          const response = await startUpload([uploadedImage.file]);
+          if (!response || !response[0]?.url) {
+            throw new Error('Failed to upload image');
+          }
+
+          const { url } = response[0];
+          return url;
+        }),
+      );
+
+      return uploadedUrls; // Return the uploaded URLs
+    } catch (error) {
+      toast({
+        title: 'Upload Error',
+        description:
+          'There was an error uploading your images. Please try again.',
+        variant: 'destructive',
+      });
+      return []; // Return an empty array on error
+    }
+  };
+
+  function base64ToBlob(base64: string, mimeType: string) {
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: mimeType });
+  }
+
+  //state để lưu trữ các tùy chọn
   const [options, setOptions] = useState<{
     color: (typeof COLORS)[number];
     model: (typeof MODELS.options)[number];
@@ -150,9 +264,12 @@ const DesignConfigurator = () => {
     model: MODELS.options[0],
   });
 
-  const phoneCaseRef = useRef<HTMLDivElement>(null);
+  //ref để lưu trữ tham chiếu đến phần tử của hộp cầu áo
+  const tShirtCaseRef = useRef<HTMLDivElement>(null);
+  //ref để lưu trữ tham chiếu đến phần tử chứa các hình ảnh
   const containerRef = useRef<HTMLDivElement>(null);
 
+  //hàm lưu trữ cấu hình
   async function saveConfiguration() {
     try {
       const {
@@ -160,7 +277,7 @@ const DesignConfigurator = () => {
         top: caseTop,
         width: caseWidth,
         height: caseHeight,
-      } = phoneCaseRef.current!.getBoundingClientRect();
+      } = tShirtCaseRef.current!.getBoundingClientRect();
 
       const { left: containerLeft, top: containerTop } =
         containerRef.current!.getBoundingClientRect();
@@ -173,22 +290,15 @@ const DesignConfigurator = () => {
       canvas.height = caseHeight;
       const ctx = canvas.getContext('2d');
 
-      const backgroundImage = new Image();
-      backgroundImage.crossOrigin = 'anonymous';
-      backgroundImage.src = '/template-front.png';
-      await new Promise((resolve) => (backgroundImage.onload = resolve));
-
-      ctx?.drawImage(backgroundImage, 0, 0, caseWidth, caseHeight);
-
       for (let i = 0; i < images.length; i++) {
         const image = images[i];
 
         const userImage = new Image();
         userImage.crossOrigin = 'anonymous';
-        userImage.src = image.url;
+        userImage.src = URL.createObjectURL(image.file);
         await new Promise((resolve) => (userImage.onload = resolve));
 
-        // Adjust the position and size of the image
+        //điều chỉnh vị trí và kích thước của hình ảnh
         ctx?.drawImage(
           userImage,
           image.x - leftOffset,
@@ -197,13 +307,23 @@ const DesignConfigurator = () => {
           image.height / 4,
         );
       }
+      const backgroundImage = new Image();
+      backgroundImage.crossOrigin = 'anonymous';
+      backgroundImage.src = '/template/template-bg-front.png';
+      await new Promise((resolve) => (backgroundImage.onload = resolve));
 
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          localStorage.setItem('customImage', url);
-        }
-      });
+      ctx?.drawImage(backgroundImage, 0, 0, caseWidth, caseHeight);
+
+      const base64 = canvas.toDataURL();
+      const base64Data = base64.split(',')[1];
+
+      const blob = base64ToBlob(base64Data, 'image/png');
+      const file = new File(
+        [blob],
+        'filename' + new Date().getTime() + '.png',
+        { type: 'image/png' },
+      );
+      setCroppedImages([{ side: 'front', file }]);
     } catch (err) {
       toast({
         title: 'Something went wrong',
@@ -215,7 +335,7 @@ const DesignConfigurator = () => {
   }
 
   return (
-    <div className="relative mt-20 grid grid-cols-1 lg:grid-cols-3 mb-20 pb-20">
+    <div className="relative mt-20 grid grid-cols-1 lg:grid-cols-4 mb-20 pb-20">
       <Dropzone
         onDropRejected={onDropRejected}
         onDropAccepted={onDropAccepted}
@@ -232,23 +352,23 @@ const DesignConfigurator = () => {
           <div
             {...getRootProps()}
             ref={containerRef}
-            className="relative h-[37.5rem] overflow-hidden col-span-2 w-full max-w-4xl flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-12 text-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            className="relative overflow-hidden col-span-3 w-full max-w-5xl flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           >
             <input {...getInputProps()} />
             <div
               className="relative bg-opacity-50 pointer-events-none aspect-[2000/2000]"
-              style={{ width: '36rem' }}
+              style={{ width: '100%' }}
             >
               <AspectRatio
-                ref={phoneCaseRef}
+                ref={tShirtCaseRef}
                 ratio={2000 / 2000}
                 className="pointer-events-none relative z-50 aspect-[2000/2000] w-full"
               >
                 <NextImage
                   fill
                   alt="T-shirt image"
-                  src="/template-front.png"
-                  className="pointer-events-none select-none"
+                  src="/template/template-bg-front.png"
+                  className="pointer-events-none z-50 select-none"
                   loading="lazy"
                 />
               </AspectRatio>
@@ -256,10 +376,11 @@ const DesignConfigurator = () => {
               <div
                 className={cn(
                   'absolute inset-0 left-[3px] top-px right-[3px] bottom-px rounded-[32px]',
+                  `bg-${options.color.tw}`,
                 )}
               />
             </div>
-            {images.map(({ url, width, height, id }, index) => (
+            {images.map(({ file, width, height, id }, index) => (
               <Rnd
                 key={id} // Use the unique id as the key
                 default={{
@@ -275,10 +396,6 @@ const DesignConfigurator = () => {
                   setImages((prev) => {
                     // Ensure prev is an array before proceeding
                     if (!Array.isArray(prev)) {
-                      console.error(
-                        'Expected prev to be an array, but got:',
-                        prev,
-                      );
                       return prev; // Safely return if not an array
                     }
 
@@ -292,12 +409,11 @@ const DesignConfigurator = () => {
                 }}
                 onDragStop={(_, data) => {
                   const { x, y } = data;
-                  console.log('id', id);
                   setImages((prev) =>
                     prev.map((pos) => (pos.id === id ? { ...pos, x, y } : pos)),
                   );
                 }}
-                className="absolute z-50 border-[3px] border-primary"
+                className="absolute z-20 border-[3px] border-primary"
                 lockAspectRatio={isShiftPressed}
                 resizeHandleComponent={{
                   bottomRight: <HandleComponent />,
@@ -322,8 +438,8 @@ const DesignConfigurator = () => {
               >
                 <div className="relative w-full h-full">
                   <NextImage
-                    key={url}
-                    src={url}
+                    key={id}
+                    src={URL.createObjectURL(file)}
                     fill
                     alt="your image"
                     className="pointer-events-none"
@@ -358,18 +474,18 @@ const DesignConfigurator = () => {
                     const files = (e.target as HTMLInputElement).files;
                     if (files) {
                       Array.from(files).forEach((file) => {
-                        const url = URL.createObjectURL(file);
                         const img = new Image();
-                        img.src = url;
+                        img.src = URL.createObjectURL(file);
                         img.onload = async () => {
                           addImage([
                             {
-                              url,
+                              file,
                               width: img.width,
                               height: img.height,
                               x: 200,
                               y: 205,
                               id: uuidv4(),
+                              side: 'front',
                             },
                           ]);
                         };
@@ -489,22 +605,15 @@ const DesignConfigurator = () => {
           <div className="w-full h-full flex justify-end items-center">
             <div className="w-full flex gap-6 items-center">
               <p className="font-medium whitespace-nowrap">
-                {formatPrice(BASE_PRICE + PRODUCT_PRICES.model[options.model.value])}
+                {formatPrice(
+                  BASE_PRICE + PRODUCT_PRICES.model[options.model.value],
+                )}
               </p>
               <Button
                 isLoading={isPending}
                 disabled={isPending}
                 loadingText="Saving"
-                onClick={() =>
-                  createConfig({
-                    color: options.color.value,
-                    model: options.model.value,
-                    imageUrls: images.map((image) => ({
-                      ...image,
-                    })),
-                    croppedImageUrl: '',
-                  })
-                }
+                onClick={() => createConfig()}
                 size="sm"
                 className="w-full"
               >

@@ -41,7 +41,11 @@ const Page = async () => {
     include: {
       user: true,
       shippingAddress: true,
-      configuration: true,
+      configuration: {
+        include: {
+          croppedImages: true,
+        },
+      },
     },
   });
 
@@ -150,8 +154,8 @@ const Page = async () => {
                     {formatPrice(order.amount)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {order.configuration.croppedImageUrl && (
-                      <DownloadButton imageUrl={order.configuration.croppedImageUrl} />
+                    {order.configuration.croppedImages[0]?.url && (
+                      <DownloadButton imageUrl={order.configuration.croppedImages[0].url} />
                     )}
                   </TableCell>
                 </TableRow>

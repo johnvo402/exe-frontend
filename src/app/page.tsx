@@ -1,6 +1,6 @@
 import { Icons } from '@/components/Icons'
 import MaxWidthWrapper from '@/components/MaxWidthWrapper'
-import Phone from '@/components/Phone'
+import TShirt from '@/components/TShirt'
 import { Reviews } from '@/components/Reviews'
 import { buttonVariants } from '@/components/ui/button'
 import { ArrowRight, Check, Star } from 'lucide-react'
@@ -93,13 +93,15 @@ export default function Home() {
               <img
                 src='/your-image.png'
                 className='absolute w-40 lg:w-52 left-56 -top-20 select-none hidden sm:block lg:hidden xl:block'
+                alt='overlaying t-shirt image'
               />
               {/* eslint-disable-next-line jsx-a11y/alt-text */}
               <img
                 src='/line.png'
                 className='absolute w-20 -left-6 -bottom-6 select-none'
+                alt='line image'
               />
-              <Phone className='w-96' imgSrc='/testimonials/1.jpg' />
+              <TShirt className='w-96' imgSrc='/testimonials/1.jpg' />
             </div>
           </div>
         </MaxWidthWrapper>

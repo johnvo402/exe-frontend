@@ -4,7 +4,7 @@ import { HTMLAttributes, useEffect, useRef, useState } from 'react'
 import MaxWidthWrapper from './MaxWidthWrapper'
 import { useInView } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import Phone from './Phone'
+import TShirt from './TShirt'
 
 const PHONES = [
   '/testimonials/1.jpg',
@@ -101,7 +101,7 @@ function Review({ imgSrc, className, ...props }: ReviewProps) {
       )}
       style={{ animationDelay }}
       {...props}>
-      <Phone imgSrc={imgSrc} />
+      <TShirt imgSrc={imgSrc} />
     </div>
   )
 }

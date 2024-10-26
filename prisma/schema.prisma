@@ -23,15 +23,32 @@ enum ShirtColor {
   white
 }
 
+enum ShirtSide {
+  front
+  back
+  left
+  right
+}
+
 model Configuration {
-  id String @id @default(cuid())
+  id                 String           @id @default(cuid())
   ConfigurationImage ConfigurationImage[]
   color              ShirtColor
   model              ShirtModel
-  croppedImageUrl    String?
+  croppedImages      CroppedImage[]   // Liên kết tới các hình ảnh cắt của từng mặt
   Order              Order[]
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+}
+
+model CroppedImage {
+  id              String        @id @default(cuid())
+  configuration   Configuration @relation(fields: [configurationId], references: [id])
+  configurationId String
+  side            ShirtSide     // Xác định mặt áo: trước, sau, trái, phải
+  url             String        // URL của hình ảnh đã cắt cho mặt áo này
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 model ImageUrl {
@@ -40,8 +57,8 @@ model ImageUrl {
   height             Int
   url                String
   ConfigurationImage ConfigurationImage[]
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
 }
 
 model ConfigurationImage {
@@ -50,9 +67,12 @@ model ConfigurationImage {
   imageUrlId      String
   Configuration   Configuration @relation(fields: [configurationId], references: [id])
   configurationId String
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  side            ShirtSide     // Xác định mặt áo: trước, sau, trái, phải
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
+
+
 
 model User {
   id    String  @id @default(cuid())
@@ -74,8 +94,6 @@ model Order {
 
   shippingAddress   ShippingAddress? @relation(fields: [shippingAddressId], references: [id])
   shippingAddressId String?
-  billingAddress    BillingAddress?  @relation(fields: [billingAddressId], references: [id])
-  billingAddressId  String?
 
   createdAt DateTime @default(now())
   updated   DateTime @updatedAt
@@ -93,14 +111,3 @@ model ShippingAddress {
   orders      Order[]
 }
 
-model BillingAddress {
-  id          String  @id @default(cuid())
-  name        String
-  street      String
-  city        String
-  postalCode  String
-  country     String
-  state       String?
-  phoneNumber String?
-  orders      Order[]
-}

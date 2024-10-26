@@ -20,11 +20,19 @@ export function constructMetadata({
   description = 'Create custom high-quality t-shirt cases in seconds',
   image = '/thumbnail.png',
   icons = '/favicon.ico',
+  url = process.env.NODE_ENV === 'development'
+    ? 'http://localhost:3000'
+    : 'https://osty.store',
+  siteName = 'Osty Store',
+  countryName = 'Vietnam',
 }: {
   title?: string;
   description?: string;
   image?: string;
   icons?: string;
+  url?: string;
+  siteName?: string;
+  countryName?: string;
 } = {}): Metadata {
   return {
     title,
@@ -33,18 +41,21 @@ export function constructMetadata({
       title,
       description,
       images: [{ url: image }],
+      url,
+      siteName,
+      countryName,
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
       images: [image],
-      creator: '@ththu',
+      creator: '@ththu0402',
     },
     icons,
     metadataBase: new URL(
       process.env.NODE_ENV === 'development'
-        ? 'https://exe-frontend-exe-osty.vercel.app'
+        ? 'http://localhost:3000'
         : 'https://osty.store',
     ),
   };
