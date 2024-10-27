@@ -1,55 +1,63 @@
-"use server";
+'use server';
 
-import { db } from "@/db";
-import { ShirtColor, ShirtModel, ShirtSide } from "@prisma/client";
+import { db } from '@/db';
+import { ShirtColor, ShirtModel, ShirtSide } from '@prisma/client';
 
 export type CreateConfigArgs = {
-  color: ShirtColor; // Màu sắc áo
-  model: ShirtModel; // Mẫu áo
-  imageUrls: {      // Danh sách các URL hình ảnh cho ConfigurationImage
-    url: string;
-    width: number;
-    height: number;
-    side: ShirtSide; // Thêm trường side để xác định mặt áo
+  color: ShirtColor; // Shirt color
+  model: ShirtModel; // Shirt model
+  imageUrls: {
+    url: string; // Image URL
+    width: number; // Image width
+    height: number; // Image height
+    side: ShirtSide; // Shirt side
   }[];
-  croppedImages: {  // Danh sách các hình ảnh đã cắt
-    side: ShirtSide; // Mặt áo: front, back, left, right
-    url: string;     // URL của hình ảnh cắt
+  croppedImages: {
+    side: ShirtSide; // Cropped side
+    url: string; // Cropped image URL
   }[];
-}
-
+};
 
 export async function createConfig({
   color,
   model,
   imageUrls,
-  croppedImages, // Thay đổi từ croppedImageUrl thành croppedImages
+  croppedImages,
 }: CreateConfigArgs): Promise<string> {
-  const config = await db.configuration.create({
-    data: {
-      color,
-      model,
-      ConfigurationImage: {
-        create: imageUrls.map((image) => ({
-          side: image.side,
-          imageUrl: {
-            create: {
-              url: image.url,
-              width: image.width,
-              height: image.height,
+  // Validate input data
+  if (!croppedImages.length) {
+    throw new Error('Image URLs and cropped images cannot be empty.');
+  }
+
+  // Begin transaction to ensure data integrity
+  const config = await db.$transaction(async (prisma) => {
+    const createdConfig = await prisma.configuration.create({
+      data: {
+        color,
+        model,
+        ConfigurationImage: {
+          create: imageUrls.map((image) => ({
+            side: image.side,
+            imageUrl: {
+              create: {
+                url: image.url,
+                width: image.width,
+                height: image.height,
+              },
             },
-          },
-        })),
+          })),
+        },
+        croppedImages: {
+          create: croppedImages.map((croppedImage) => ({
+            side: croppedImage.side,
+            url: croppedImage.url,
+          })),
+        },
       },
-      croppedImages: {
-        create: croppedImages.map((croppedImage) => ({
-          side: croppedImage.side, // Đảm bảo có trường side cho từng hình ảnh cắt
-          url: croppedImage.url,
-        })),
-      },
-    },
+    });
+
+    return createdConfig;
   });
 
-  return config.id;
+  return config.id; // Return the ID of the created configuration
 }
-

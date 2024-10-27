@@ -31,7 +31,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ShirtSide } from '@prisma/client';
 
 //định nghĩa kiểu dữ liệu cho images
-interface DesignConfigurator {
+export interface DesignConfigurator {
   url: string;
   width: number;
   height: number;
@@ -40,9 +40,6 @@ interface DesignConfigurator {
   id: string;
   side: ShirtSide;
 }
-interface UploadedImage {
-  url: string;
-}
 interface CroppedImage {
   side: string;
   url: string;
@@ -50,23 +47,39 @@ interface CroppedImage {
 
 const DesignConfigurator = () => {
   //state để lưu trữ các hình ảnh
-  const [images, setImages] = useState<DesignConfigurator[]>([]);
-  const [croppedImages, setCroppedImages] = useState<CroppedImage[]>([]);
+  const [currentSide, setCurrentSide] = useState<ShirtSide>('front');
+  const [images, setImages] = useState<Record<ShirtSide, DesignConfigurator[]>>(
+    {
+      front: [],
+      back: [],
+      left: [],
+      right: [],
+    },
+  );
+  const [croppedImages, setCroppedImages] = useState<
+    Record<ShirtSide, CroppedImage[]>
+  >({
+    front: [],
+    back: [],
+    left: [],
+    right: [],
+  });
   const { toast } = useToast();
   const router = useRouter();
   //state để kiểm tra việc kéo thả hình ảnh
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
-  const [isDragging, setIsDragging] = useState<boolean>(false);
   //state để kiểm tra việc nhấn phím shift
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const { startUpload } = useUploadThing('imageUploader');
 
   useEffect(() => {
-    if (!isDragging) {
-      saveConfiguration();
-    }
+    const saveConfig = async () => {
+      await saveConfiguration();
+    };
+    saveConfig();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [images]);
+
   useEffect(() => {
     //hàm kiểm tra việc nhấn phím shift
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -104,13 +117,13 @@ const DesignConfigurator = () => {
   };
   //hàm thêm hình ảnh
   const addImage = (newImages: DesignConfigurator[]) => {
-    setImages((prev) => [
-      ...prev,
-      ...newImages.map((image) => ({ ...image, id: uuidv4() })), // Add unique id
-    ]);
+    setImages((prevImages) => ({
+      ...prevImages,
+      [currentSide]: [...prevImages[currentSide], ...newImages],
+    }));
   };
 
-  //hàm xử lý khi file được chấp nh��n
+  //hàm xử lý khi file được chấp nhn
   const onDropAccepted = async (acceptedFiles: File[]) => {
     acceptedFiles.forEach((file) => {
       const img = new Image();
@@ -119,12 +132,12 @@ const DesignConfigurator = () => {
         addImage([
           {
             url: img.src,
-            width: img.width,
-            height: img.height,
-            x: 200,
-            y: 205,
+            width: Math.min(img.width, 120),
+            height: Math.min(img.height, 120),
+            x: 380,
+            y: 380,
             id: uuidv4(),
-            side: 'front',
+            side: currentSide,
           },
         ]);
       };
@@ -137,6 +150,7 @@ const DesignConfigurator = () => {
     mutationKey: ['create-config'],
     mutationFn: async () => {
       try {
+        const sides: ShirtSide[] = ['front', 'back', 'left', 'right'];
         const args: CreateConfigArgs = {
           color: options.color.value,
           model: options.model.value,
@@ -144,45 +158,40 @@ const DesignConfigurator = () => {
           croppedImages: [],
         };
 
-        // Validate presence of images and cropped images
-        if (!croppedImages.length) {
-          throw new Error('Custom image not found in localStorage.');
-        }
-        if (!images.length) {
-          throw new Error('Custom image not found in localStorage.');
-        }
+        for (const side of sides) {
+          // Remove validation for presence of images and cropped images
 
-        // 1. Upload cropped images and get their URLs
-        const uploadedUrls = await uploadCroppedImages(croppedImages);
-        if (uploadedUrls.length === 0) {
-          throw new Error('No images were uploaded successfully.');
+          // 1. Upload cropped images and get their URLs for each side
+          const uploadedCroppedUrls = await uploadCroppedImages(side);
+
+          // 2. Update args with uploaded cropped image URLs for each side
+          args.croppedImages.push(
+            ...uploadedCroppedUrls.map((url, index) => ({
+              side: croppedImages[side][index].side as ShirtSide,
+              url,
+            })),
+          );
+          if (images[side].length !== 0) {
+            // 3. Upload images and get their URLs for each side
+            const uploadedImagesUrls = await uploadImages(images[side]);
+
+            // 4. Update args with uploaded image URLs for each side
+            args.imageUrls.push(
+              ...uploadedImagesUrls.map((url, index) => ({
+                url,
+                width: images[side][index].width,
+                height: images[side][index].height,
+                side: images[side][index].side,
+              })),
+            );
+          }
         }
-
-        // 2. Update args with uploaded cropped image URLs
-        args.croppedImages = uploadedUrls.map((url, index) => ({
-          side: croppedImages[index].side as ShirtSide,
-          url,
-        }));
-
-        // 3. Upload images and get their URLs
-        const uploadedImagesUrls = await uploadImages(images);
-        if (uploadedImagesUrls.length === 0) {
-          throw new Error('No images were uploaded successfully.');
-        }
-
-        // 4. Update args with uploaded image URLs
-        args.imageUrls = uploadedImagesUrls.map((url, index) => ({
-          url,
-          width: images[index].width,
-          height: images[index].height,
-          side: images[index].side,
-        }));
 
         // 5. Create configuration in the database
         const id = await _createConfig(args);
         return id;
       } catch (error) {
-        throw error; // Re-throw to trigger onError
+        console.log(error); // Re-throw to trigger onError
       }
     },
     onError: (error) => {
@@ -202,11 +211,11 @@ const DesignConfigurator = () => {
     setTimeout(() => createConfig(), 1000);
   };
 
-  // Upload cropped images function
-  const uploadCroppedImages = async (croppedImages: UploadedImage[]) => {
+  // Modify uploadCroppedImages to accept a side parameter
+  const uploadCroppedImages = async (side: ShirtSide) => {
     try {
       const uploadedUrls = await Promise.all(
-        croppedImages.map(async (uploadedImage) => {
+        croppedImages[side].map(async (uploadedImage: CroppedImage) => {
           const response = await fetch(uploadedImage.url);
           const blob = await response.blob();
           const file = new File([blob], 'image.png', { type: blob.type });
@@ -233,13 +242,20 @@ const DesignConfigurator = () => {
     }
   };
 
-  const uploadImages = async (images: UploadedImage[]) => {
+  // Modify uploadImages to accept a side parameter
+  const uploadImages = async (images: DesignConfigurator[]) => {
     try {
       const uploadedUrls = await Promise.all(
         images.map(async (uploadedImage) => {
           const response = await fetch(uploadedImage.url);
           const blob = await response.blob();
-          const file = new File([blob], 'image.png', { type: blob.type });
+          const file = new File(
+            [blob],
+            new Date().getTime() + '-' + uploadedImage.side + '.png',
+            {
+              type: blob.type,
+            },
+          );
 
           const uploadResponse = await startUpload([file]); // Pass the File object
           if (!uploadResponse || !uploadResponse[0]?.url) {
@@ -290,68 +306,73 @@ const DesignConfigurator = () => {
   //hàm lưu trữ cấu hình
   async function saveConfiguration() {
     try {
-      const {
-        left: caseLeft,
-        top: caseTop,
-        width: caseWidth,
-        height: caseHeight,
-      } = tShirtCaseRef.current!.getBoundingClientRect();
+      const sides: ShirtSide[] = ['front', 'back', 'left', 'right'];
 
-      const { left: containerLeft, top: containerTop } =
-        containerRef.current!.getBoundingClientRect();
+      for (const side of sides) {
+        const {
+          left: caseLeft,
+          top: caseTop,
+          width: caseWidth,
+          height: caseHeight,
+        } = tShirtCaseRef.current!.getBoundingClientRect();
 
-      const leftOffset = caseLeft - containerLeft;
-      const topOffset = caseTop - containerTop;
+        const { left: containerLeft, top: containerTop } =
+          containerRef.current!.getBoundingClientRect();
 
-      const canvas = document.createElement('canvas');
-      canvas.width = caseWidth;
-      canvas.height = caseHeight;
-      const ctx = canvas.getContext('2d');
+        const leftOffset = caseLeft - containerLeft;
+        const topOffset = caseTop - containerTop;
 
-      for (let i = 0; i < images.length; i++) {
-        const image = images[i];
+        const canvas = document.createElement('canvas');
+        canvas.width = caseWidth;
+        canvas.height = caseHeight;
+        const ctx = canvas.getContext('2d');
+        if (images[side].length !== 0) {
+          for (let i = 0; i < images[side].length; i++) {
+            const image = images[side][i];
 
-        const userImage = new Image();
-        userImage.crossOrigin = 'anonymous';
-        userImage.src = image.url;
-        await new Promise((resolve) => (userImage.onload = resolve));
+            const userImage = new Image();
+            userImage.crossOrigin = 'anonymous';
+            userImage.src = image.url;
+            await new Promise((resolve) => (userImage.onload = resolve));
 
-        //điều chỉnh vị trí và kích thước của hình ảnh
-        ctx?.drawImage(
-          userImage,
-          image.x - leftOffset,
-          image.y - topOffset,
-          image.width / 4,
-          image.height / 4,
-        );
+            ctx?.drawImage(
+              userImage,
+              image.x - leftOffset,
+              image.y - topOffset,
+              image.width,
+              image.height,
+            );
+          }
+        }
+        const backgroundImage = new Image();
+        backgroundImage.crossOrigin = 'anonymous';
+        backgroundImage.src = `/template/template-bg-${side}.png`;
+        await new Promise((resolve) => (backgroundImage.onload = resolve));
+
+        ctx?.drawImage(backgroundImage, 0, 0, caseWidth, caseHeight);
+
+        const base64 = canvas.toDataURL();
+        const base64Data = base64.split(',')[1];
+
+        const blob = base64ToBlob(base64Data, 'image/png');
+        const blobUrl = URL.createObjectURL(blob);
+        setCroppedImages((prevCroppedImages) => ({
+          ...prevCroppedImages,
+          [side]: [{ side, url: blobUrl }],
+        }));
       }
-      const backgroundImage = new Image();
-      backgroundImage.crossOrigin = 'anonymous';
-      backgroundImage.src = '/template/template-bg-front.png';
-      await new Promise((resolve) => (backgroundImage.onload = resolve));
-
-      ctx?.drawImage(backgroundImage, 0, 0, caseWidth, caseHeight);
-
-      const base64 = canvas.toDataURL();
-      const base64Data = base64.split(',')[1];
-
-      const blob = base64ToBlob(base64Data, 'image/png');
-      const file = new File(
-        [blob],
-        'filename' + new Date().getTime() + '.png',
-        { type: 'image/png' },
-      );
-      const blobUrl = URL.createObjectURL(blob);
-      setCroppedImages([{ side: 'front', url: blobUrl }]);
+      console.log(croppedImages);
     } catch (err) {
       toast({
-        title: 'Something went wrong',
         description:
           'There was a problem saving your config, please try again.',
         variant: 'destructive',
       });
     }
   }
+  const handleSideChange = (side: ShirtSide) => {
+    setCurrentSide(side);
+  };
 
   return (
     <div className="relative mt-20 grid grid-cols-1 lg:grid-cols-4 mb-20 pb-20">
@@ -386,11 +407,12 @@ const DesignConfigurator = () => {
                 <NextImage
                   fill
                   alt="T-shirt image"
-                  src="/template/template-bg-front.png"
+                  src={`/template/template-bg-${currentSide}.png`}
                   className="pointer-events-none z-50 select-none"
                   loading="lazy"
                 />
               </AspectRatio>
+
               <div className="absolute z-40 inset-0 left-[3px] top-px right-[3px] bottom-px rounded-[32px] shadow-[0_0_0_99999px_rgba(229,231,235,0.6)]" />
               <div
                 className={cn(
@@ -398,77 +420,94 @@ const DesignConfigurator = () => {
                   `bg-${options.color.tw}`,
                 )}
               />
-            </div>
-            {images.map(({ url, width, height, id }, index) => (
-              <Rnd
-                key={id} // Use the unique id as the key
-                default={{
-                  x: 250,
-                  y: 205,
-                  height: height / 4,
-                  width: width / 4,
-                }}
-                onResizeStop={(_, __, ref, ___, { x, y }) => {
-                  const newHeight = parseInt(ref.style.height.slice(0, -2));
-                  const newWidth = parseInt(ref.style.width.slice(0, -2));
-
-                  setImages((prev) => {
-                    // Ensure prev is an array before proceeding
-                    if (!Array.isArray(prev)) {
-                      return prev; // Safely return if not an array
-                    }
-
-                    // Correctly map and update positions
-                    return prev.map((pos, i) =>
-                      i === index
-                        ? { ...pos, x, y, width: newWidth, height: newHeight } // Include all properties
-                        : pos,
-                    );
-                  });
-                }}
-                onDragStart={() => setIsDragging(true)}
-                onDragStop={(_, data) => {
-                  const { x, y } = data;
-                  setImages((prev) =>
-                    prev.map((pos) => (pos.id === id ? { ...pos, x, y } : pos)),
-                  );
-                  setIsDragging(false);
-                }}
-                className="absolute z-20 border-[3px] border-primary"
-                lockAspectRatio={isShiftPressed}
-                resizeHandleComponent={{
-                  bottomRight: <HandleComponent />,
-                  bottomLeft: <HandleComponent />,
-                  topRight: (
-                    <>
-                      <HandleComponent />
-                      <button
-                        onClick={() => {
-                          setImages((prevImages) =>
-                            prevImages.filter((_, i) => i !== index),
-                          );
-                        }}
-                        className="absolute -top-5 -right-5 text-black p-1 rounded-full"
-                      >
-                        X
-                      </button>
-                    </>
-                  ),
-                  topLeft: <HandleComponent />,
-                }}
-              >
-                <div className="relative w-full h-full">
-                  <NextImage
-                    key={id}
-                    src={url}
-                    fill
-                    alt="your image"
-                    className="pointer-events-none"
-                    loading="lazy"
-                  />
+              {isPending && (
+                <div className="absolute inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+                  <p className="text-white text-lg">Saving...</p>
                 </div>
-              </Rnd>
-            ))}
+              )}
+            </div>
+            {images[currentSide].map(
+              ({ url, width, height, id, x, y }, index) => (
+                <Rnd
+                  key={id} // Use the unique id as the key
+                  default={{
+                    x,
+                    y,
+                    height,
+                    width,
+                  }}
+                  maxWidth={120}
+                  maxHeight={120}
+                  onResizeStop={(_, __, ref, ___, { x, y }) => {
+                    const newHeight = parseInt(ref.style.height.slice(0, -2));
+
+                    const newWidth = parseInt(ref.style.width.slice(0, -2));
+
+                    setImages((prev) => {
+                      return {
+                        ...prev,
+                        [currentSide]: prev[currentSide].map((pos, i) =>
+                          i === index
+                            ? {
+                                ...pos,
+                                x,
+                                y,
+                                width: newWidth,
+                                height: newHeight,
+                              }
+                            : pos,
+                        ),
+                      };
+                    });
+                  }}
+                  onDragStop={(_, data) => {
+                    const { x, y } = data;
+                    setImages((prev) => ({
+                      ...prev,
+                      [currentSide]: prev[currentSide].map((pos) =>
+                        pos.id === id ? { ...pos, x, y } : pos,
+                      ),
+                    }));
+                  }}
+                  className="absolute z-20 border-[3px] border-primary"
+                  lockAspectRatio={isShiftPressed}
+                  resizeHandleComponent={{
+                    bottomRight: <HandleComponent />,
+                    bottomLeft: <HandleComponent />,
+                    topRight: (
+                      <>
+                        <HandleComponent />
+                        <button
+                          onClick={() => {
+                            setImages((prevImages) => ({
+                              ...prevImages,
+                              [currentSide]: prevImages[currentSide].filter(
+                                (_, i) => i !== index,
+                              ),
+                            }));
+                          }}
+                          className="absolute -top-5 -right-5 text-black p-1 rounded-full"
+                        >
+                          X
+                        </button>
+                      </>
+                    ),
+                    topLeft: <HandleComponent />,
+                  }}
+                >
+                  <div className="relative w-full h-full">
+                    <NextImage
+                      key={id}
+                      src={url}
+                      fill
+                      alt="your image"
+                      className="pointer-events-none"
+                      loading="lazy"
+                    />
+                  </div>
+                </Rnd>
+              ),
+            )}
           </div>
         )}
       </Dropzone>
@@ -501,12 +540,12 @@ const DesignConfigurator = () => {
                           addImage([
                             {
                               url: img.src,
-                              width: img.width,
-                              height: img.height,
-                              x: 200,
-                              y: 205,
+                              width: Math.min(img.width, 120),
+                              height: Math.min(img.height, 120),
+                              x: 380,
+                              y: 380,
                               id: uuidv4(),
-                              side: 'front',
+                              side: currentSide,
                             },
                           ]);
                         };
@@ -554,7 +593,7 @@ const DesignConfigurator = () => {
                           cn(
                             'relative -m-0.5 flex cursor-pointer items-center justify-center rounded-full p-0.5 active:ring-0 focus:ring-0 active:outline-none focus:outline-none border-2 border-transparent',
                             {
-                              [`border-${color.tw}`]: active || checked,
+                              'border-black': active || checked,
                             },
                           )
                         }
@@ -614,6 +653,25 @@ const DesignConfigurator = () => {
                       ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
+                </div>
+                <div className="relative flex flex-col gap-3 w-full">
+                  <Label>Side</Label>
+                  <div className="mt-3 flex items-center space-x-3">
+                    {['front', 'back', 'left', 'right'].map((side) => (
+                      <NextImage
+                        key={side}
+                        onClick={() => handleSideChange(side as ShirtSide)}
+                        className={cn(
+                          'cursor-pointer',
+                          currentSide === side ? 'border-2 border-primary' : '',
+                        )}
+                        src={`/template/template-bg-${side}.png`}
+                        alt={side}
+                        width={50}
+                        height={50}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

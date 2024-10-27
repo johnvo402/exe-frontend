@@ -53,6 +53,7 @@ const Steps = () => {
                   'flex items-center px-6 py-4 text-sm font-medium'
                 )}>
                 <span className='flex-shrink-0'>
+                  {/* TODO: replace with a custom icon */}
                   <img
                     src={imgPath}
                     className={cn(
@@ -62,6 +63,7 @@ const Steps = () => {
                         'border-zinc-700': isCurrent,
                       }
                     )}
+                    alt={step.name}
                   />
                 </span>
 

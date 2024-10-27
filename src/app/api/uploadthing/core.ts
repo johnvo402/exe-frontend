@@ -10,7 +10,7 @@ export const ourFileRouter = {
     .middleware(async ({ input }) => {
       return { input };
     })
-    .onUploadComplete(async ({ metadata, file }) => {
+    .onUploadComplete(async ({ file }) => {
       const url = file.url;
       return { url };
     }),

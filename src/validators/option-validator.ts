@@ -2,16 +2,16 @@
 // bg-zinc-900 border-zinc-900
 // bg-rose-950 border-rose-950
 
-import { PRODUCT_PRICES } from '@/config/products'
+import { PRODUCT_PRICES } from '@/config/products';
 
 export const COLORS = [
-  { label: 'Black', value: 'black', tw: 'zinc-900' },
   {
     label: 'White',
     value: 'white',
     tw: 'zinc-50',
   },
-] as const
+  { label: 'Black', value: 'black', tw: 'zinc-900' },
+] as const;
 
 export const MODELS = {
   name: 'models',
@@ -25,5 +25,4 @@ export const MODELS = {
       value: 'polo_shirt',
     },
   ],
-} as const
-
+} as const;
