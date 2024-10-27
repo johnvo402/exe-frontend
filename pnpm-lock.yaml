@@ -56,6 +56,9 @@ importers:
       '@uploadthing/react':
         specifier: ^6.5.0
         version: 6.5.0(@uploadthing/mime-types@0.2.8)(fast-check@3.22.0)(next@14.2.2(@babel/core@7.24.4)(react-dom@18.0.0(react@18.0.0))(react@18.0.0))(react@18.0.0)(uploadthing@6.13.3(next@14.2.2(@babel/core@7.24.4)(react-dom@18.0.0(react@18.0.0))(react@18.0.0))(tailwindcss@3.4.1))
+      '@vercel/speed-insights':
+        specifier: ^1.0.14
+        version: 1.0.14(next@14.2.2(@babel/core@7.24.4)(react-dom@18.0.0(react@18.0.0))(react@18.0.0))(react@18.0.0)
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
@@ -1526,6 +1529,29 @@ packages:
 
   '@uploadthing/shared@6.7.9':
     resolution: {integrity: sha512-EsHkD31HLBHYB59ZbUVQg1pADtMNf+qjlKwniq+gxXsOOe5heD/zunJStjYWLhwB+C8+SaCPXvM7LiDmv5s/Vw==}
+
+  '@vercel/speed-insights@1.0.14':
+    resolution: {integrity: sha512-env1BkPddz1UaEZwBL4GmfRksMi2LbiYaKuoxMQjfLk83aEh7kkWMukkUhpQVs717NE6nnD+1+KO85GZHOZ4nQ==}
+    peerDependencies:
+      '@sveltejs/kit': ^1 || ^2
+      next: '>= 13'
+      react: ^18 || ^19 || ^19.0.0-rc
+      svelte: '>= 4'
+      vue: ^3
+      vue-router: ^4
+    peerDependenciesMeta:
+      '@sveltejs/kit':
+        optional: true
+      next:
+        optional: true
+      react:
+        optional: true
+      svelte:
+        optional: true
+      vue:
+        optional: true
+      vue-router:
+        optional: true
 
   abbrev@2.0.0:
     resolution: {integrity: sha512-6/mh1E2u2YgEsCHdY0Yx5oW+61gZU+1vXaoiHHrpKeuRNNgFvS+/jrwHiQhB5apAf5oB7UB7E19ol2R2LKH8hQ==}
@@ -3669,7 +3695,7 @@ snapshots:
       '@babel/traverse': 7.24.1
       '@babel/types': 7.24.0
       convert-source-map: 2.0.0
-      debug: 4.3.4
+      debug: 4.3.7
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.1
@@ -4347,7 +4373,7 @@ snapshots:
       '@babel/helper-split-export-declaration': 7.22.6
       '@babel/parser': 7.24.4
       '@babel/types': 7.24.0
-      debug: 4.3.4
+      debug: 4.3.7
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -5156,6 +5182,11 @@ snapshots:
       '@uploadthing/mime-types': 0.2.10
       effect: 3.4.8
       std-env: 3.7.0
+
+  '@vercel/speed-insights@1.0.14(next@14.2.2(@babel/core@7.24.4)(react-dom@18.0.0(react@18.0.0))(react@18.0.0))(react@18.0.0)':
+    optionalDependencies:
+      next: 14.2.2(@babel/core@7.24.4)(react-dom@18.0.0(react@18.0.0))(react@18.0.0)
+      react: 18.0.0
 
   abbrev@2.0.0: {}
 
