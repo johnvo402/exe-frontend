@@ -155,7 +155,11 @@ const Page = async () => {
                   </TableCell>
                   <TableCell className="text-right">
                     {order.configuration.croppedImages[0]?.url && (
-                      <DownloadButton imageUrl={order.configuration.croppedImages[0].url} />
+                      <DownloadButton
+                        imageUrl={order.configuration.croppedImages.map(
+                          (image) => image.url,
+                        )}
+                      />
                     )}
                   </TableCell>
                 </TableRow>

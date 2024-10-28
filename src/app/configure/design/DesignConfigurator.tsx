@@ -191,7 +191,11 @@ const DesignConfigurator = () => {
         const id = await _createConfig(args);
         return id;
       } catch (error) {
-        console.log(error); // Re-throw to trigger onError
+        toast({
+          title: 'Lỗi cấu hình',
+          description: 'There was an error on our end. Please try again.',
+          variant: 'destructive',
+        });
       }
     },
     onError: (error) => {
@@ -361,7 +365,6 @@ const DesignConfigurator = () => {
           [side]: [{ side, url: blobUrl }],
         }));
       }
-      console.log(croppedImages);
     } catch (err) {
       toast({
         description:

@@ -3,12 +3,13 @@ import MaxWidthWrapper from './MaxWidthWrapper'
 import { buttonVariants } from './ui/button'
 import { ArrowRight } from 'lucide-react'
 import { getKindeServerSession, LoginLink, LogoutLink, RegisterLink } from '@kinde-oss/kinde-auth-nextjs/server'
+import { checkRole } from '@/lib/useRoleAndPermission'
 
 const Navbar = async () => {
   const { getUser } = getKindeServerSession()
   const user = await getUser()
 
-  const isAdmin = user?.email === process.env.ADMIN_EMAIL
+  const isAdmin = await checkRole('admin-exe')
 
   return (
     <nav className='sticky text-2xl z-[100] h-14 inset-x-0 top-0 w-full border-b border-gray-200 bg-white/75 backdrop-blur-lg transition-all'>

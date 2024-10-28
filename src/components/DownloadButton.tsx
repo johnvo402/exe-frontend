@@ -2,28 +2,38 @@
 
 import React from 'react';
 import { Button } from './ui/button';
+import { toast } from './ui/use-toast';
 
 interface DownloadButtonProps {
-  imageUrl: string;
+  imageUrl: string[];
 }
 
 const DownloadButton: React.FC<DownloadButtonProps> = ({ imageUrl }) => {
+  // ... existing code ...
   const downloadCroppedImage = async () => {
     try {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-    link.download = 'cropped-image.png';
-    document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      URL.revokeObjectURL(url);
+      imageUrl.forEach(async (url, index) => {
+        // Changed map to forEach
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob); // Renamed variable to avoid shadowing
+
+        const link = document.createElement('a');
+        link.href = objectUrl; // Updated to use the correct variable
+        link.download = `cropped-image-${index}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        URL.revokeObjectURL(objectUrl); // Updated to use the correct variable
+      });
     } catch (error) {
-      console.error('Error downloading image:', error);
+      toast({
+        title: 'Error',
+        description:
+          'There was a problem downloading your image, please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
