@@ -29,6 +29,7 @@ import Dropzone, { FileRejection } from 'react-dropzone';
 import { uploadFiles, useUploadThing } from '@/lib/uploadthing';
 import { v4 as uuidv4 } from 'uuid';
 import { ShirtSide } from '@prisma/client';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 //định nghĩa kiểu dữ liệu cho images
 export interface DesignConfigurator {
@@ -210,11 +211,6 @@ const DesignConfigurator = () => {
     },
   });
 
-  // Add a delay for mutation trigger if needed
-  const handleCreateConfig = () => {
-    setTimeout(() => createConfig(), 1000);
-  };
-
   // Modify uploadCroppedImages to accept a side parameter
   const uploadCroppedImages = async (side: ShirtSide) => {
     try {
@@ -377,7 +373,9 @@ const DesignConfigurator = () => {
     setCurrentSide(side);
   };
 
-  return (
+  return isPending ? (
+    <LoadingSpinner />
+  ) : (
     <div className="relative mt-20 grid grid-cols-1 lg:grid-cols-4 mb-20 pb-20">
       <Dropzone
         onDropRejected={onDropRejected}
@@ -699,7 +697,7 @@ const DesignConfigurator = () => {
                 isLoading={isPending}
                 disabled={isPending}
                 loadingText="Saving"
-                onClick={handleCreateConfig}
+                onClick={() => createConfig()}
                 size="sm"
                 className="w-full"
               >
