@@ -326,6 +326,11 @@ const DesignConfigurator = () => {
         canvas.width = caseWidth;
         canvas.height = caseHeight;
         const ctx = canvas.getContext('2d');
+
+        if (ctx) {
+          ctx.fillStyle = options.color.tw;
+          ctx.fillRect(0, 0, caseWidth, caseHeight);
+        }
         if (images[side].length !== 0) {
           for (let i = 0; i < images[side].length; i++) {
             const image = images[side][i];
