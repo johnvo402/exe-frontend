@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint", // ESLint for linting JavaScript and TypeScript
+    "esbenp.prettier-vscode", // Prettier for code formatting
+    "ms-vscode.vscode-typescript-next", // TypeScript support
+    "prisma.prisma", // Prisma support for database management
+    "bradlc.vscode-tailwindcss", // Tailwind CSS IntelliSense
+    "csstools.postcss", // PostCSS support
+    "ms-azuretools.vscode-docker", // Docker support
+  ]
+}

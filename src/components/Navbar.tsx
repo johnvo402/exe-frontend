@@ -4,6 +4,7 @@ import { buttonVariants } from './ui/button'
 import { ArrowRight } from 'lucide-react'
 import { getKindeServerSession, LoginLink, LogoutLink, RegisterLink } from '@kinde-oss/kinde-auth-nextjs/server'
 import { checkRole } from '@/lib/useRoleAndPermission'
+import Image from 'next/image'
 
 const Navbar = async () => {
   const { getUser } = getKindeServerSession()
@@ -16,7 +17,7 @@ const Navbar = async () => {
       <MaxWidthWrapper>
         <div className='flex h-14 items-center justify-between border-b border-zinc-200'>
           <Link href='/' className='flex z-40 font-semibold'>
-            Osty
+            <Image src='/logo-no-bg.png' alt='logo' width={100} height={100} />
           </Link>
 
           <div className='h-full flex items-center space-x-4'>
