@@ -17,7 +17,7 @@ export const formatPrice = (price: number) => {
 
 export function constructMetadata({
   title = 'Osty - OwnStyle',
-  description = 'Create custom high-quality t-shirt cases in seconds',
+  description = 'Create custom high-quality shirts in seconds',
   image = '/thumbnail.png',
   icons = '/favicon.ico',
   url = process.env.NODE_ENV === 'development'

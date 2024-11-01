@@ -437,8 +437,8 @@ const DesignConfigurator = () => {
                     height,
                     width,
                   }}
-                  maxWidth={120}
-                  maxHeight={120}
+                  // maxWidth={120}
+                  // maxHeight={120}
                   onResizeStop={(_, __, ref, ___, { x, y }) => {
                     const newHeight = parseInt(ref.style.height.slice(0, -2));
 

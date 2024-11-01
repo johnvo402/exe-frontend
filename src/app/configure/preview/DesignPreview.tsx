@@ -131,7 +131,7 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
 
         <div className="mt-6 sm:col-span-9 md:row-end-1">
           <h3 className="text-3xl font-bold tracking-tight text-gray-900">
-            Your {modelLabel} Case
+            Your {modelLabel}
           </h3>
           <div className="mt-3 flex items-center gap-1.5 text-base">
             <Check className="h-4 w-4 text-green-500" />
@@ -144,17 +144,17 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
             <div>
               <p className="font-medium text-zinc-950">Highlights</p>
               <ol className="mt-3 text-zinc-700 list-disc list-inside">
-                <li>Wireless charging compatible</li>
-                <li>TPU shock absorption</li>
-                <li>Packaging made from recycled materials</li>
-                <li>5 year print warranty</li>
+                <li>Customizable design options</li>
+                <li>Available in multiple sizes</li>
+                <li>Choose your preferred color</li>
+                <li>Personalized text and graphics</li>
               </ol>
             </div>
             <div>
               <p className="font-medium text-zinc-950">Materials</p>
               <ol className="mt-3 text-zinc-700 list-disc list-inside">
-                <li>High-quality, durable material</li>
-                <li>Scratch- and fingerprint resistant coating</li>
+                <li>Eco-friendly, sustainable fabric</li>
+                <li>Water-resistant and easy to clean</li>
               </ol>
             </div>
           </div>
