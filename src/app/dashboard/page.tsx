@@ -17,61 +17,18 @@ import {
 } from '@/components/ui/table';
 import { db } from '@/db';
 import { formatPrice } from '@/lib/utils';
-import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 import { notFound } from 'next/navigation';
 import StatusDropdown from './StatusDropdown';
-import { Button } from '@/components/ui/button';
 import DownloadButton from '@/components/DownloadButton';
-
+import { getOrderData } from './actions';
+import { checkRole } from '@/lib/useRoleAndPermission';
 const Page = async () => {
-  const { getUser } = getKindeServerSession();
-  const user = await getUser();
+  const { orders, lastWeekSum, lastMonthSum } = await getOrderData();
 
-  const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-
-  if (!user || user.email !== ADMIN_EMAIL) {
+  const isAdmin = await checkRole('admin-exe');
+  if (!isAdmin) {
     return notFound();
   }
-
-  const orders = await db.order.findMany({
-    where: {},
-    orderBy: {
-      createdAt: 'desc',
-    },
-    include: {
-      user: true,
-      shippingAddress: true,
-      configuration: {
-        include: {
-          croppedImages: true,
-        },
-      },
-    },
-  });
-
-  const lastWeekSum = await db.order.aggregate({
-    where: {
-      status: 'shipped',
-      createdAt: {
-        gte: new Date(new Date().setDate(new Date().getDate() - 7)),
-      },
-    },
-    _sum: {
-      amount: true,
-    },
-  });
-
-  const lastMonthSum = await db.order.aggregate({
-    where: {
-      isPaid: true,
-      createdAt: {
-        gte: new Date(new Date().setDate(new Date().getDate() - 30)),
-      },
-    },
-    _sum: {
-      amount: true,
-    },
-  });
 
   const WEEKLY_GOAL = 500;
   const MONTHLY_GOAL = 2500;
@@ -159,6 +116,9 @@ const Page = async () => {
                         imageUrl={order.configuration.croppedImages.map(
                           (image) => image.url,
                         )}
+                        customName={
+                          order.shippingAddress?.name || order.user.email
+                        }
                       />
                     )}
                   </TableCell>
