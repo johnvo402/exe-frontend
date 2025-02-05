@@ -207,7 +207,7 @@ const DesignConfigurator = () => {
       });
     },
     onSuccess: (id) => {
-      router.push(`/configure/preview?id=${id}`);
+      router.push(`/configure/preview?configId=${id}`);
     },
   });
 
@@ -689,7 +689,7 @@ const DesignConfigurator = () => {
           </div>
         </ScrollArea>
 
-        {/* <div className="w-full px-8 h-16 bg-white">
+        <div className="w-full px-8 h-16 bg-white">
           <div className="h-px w-full bg-zinc-200" />
           <div className="w-full h-full flex justify-end items-center">
             <div className="w-full flex gap-6 items-center">
@@ -711,7 +711,7 @@ const DesignConfigurator = () => {
               </Button>
             </div>
           </div>
-        </div> */}
+        </div>
       </div>
       {/* <PhotoGalleryPopup
         isOpen={isPhotoGalleryOpen}

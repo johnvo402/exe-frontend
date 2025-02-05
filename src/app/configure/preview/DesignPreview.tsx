@@ -10,7 +10,7 @@ import { useMutation } from '@tanstack/react-query';
 import { ArrowRight, Check } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Confetti from 'react-dom-confetti';
-import { createOrder } from './actions';
+import { createOrder, createPayment } from './actions';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 import { useKindeBrowserClient } from '@kinde-oss/kinde-auth-nextjs';
@@ -24,7 +24,9 @@ import {
   CarouselNext,
 } from '@/components/ui/carousel';
 import { Card } from '@/components/ui/card';
-
+import { CheckoutRequestType } from '@payos/node/lib/type';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 interface Configuration {
   id: string;
   color: ShirtColor;
@@ -56,17 +58,42 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
   )!;
 
   let totalPrice = BASE_PRICE + (PRODUCT_PRICES.model[model] || 0);
+  const [paymentBody, setPaymentBody] = useState<CheckoutRequestType>({
+    description: id,
+    orderCode: Number(String(new Date().getTime()).slice(-6)),
+    amount: totalPrice,
+    returnUrl: '',
+    cancelUrl: '',
+    buyerName: '', 
+    buyerEmail: '',
+    buyerAddress: '',
+    buyerPhone: '',
+  });
 
+  const { mutate: createPayments } = useMutation({
+    mutationKey: ['create-payment'],
+    mutationFn: () => createPayment(paymentBody),
+    onSuccess: (url) => {
+      router.push(url?.checkoutUrl || '');
+    },
+    onError: (error) => {
+      toast({
+        title: error.name,
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
   const { mutate: createOrders } = useMutation({
     mutationKey: ['get-checkout-session'],
     mutationFn: createOrder,
-    onSuccess: (url) => {
+    onSuccess: async (success) => {
+      await createPayments();
       toast({
         title: 'Success',
         description: 'Your order has been created successfully.',
         variant: 'default',
       });
-      if (url) router.push(url?.url);
     },
     onError: () => {
       toast({
@@ -78,9 +105,28 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
   });
 
   const handleCheckout = () => {
+    if (
+      paymentBody.buyerName === '' ||
+      paymentBody.buyerEmail === '' ||
+      paymentBody.buyerAddress === '' ||
+      paymentBody.buyerPhone === ''
+    ) {
+      toast({
+        title: 'Please fill in all fields',
+        description: 'Please fill in all fields',
+        variant: 'destructive',
+      });
+      return;
+    }
     if (isAuthenticated) {
       // create payment session
-      createOrders({ configId: id });
+      createOrders({
+        configId: id,
+        address: paymentBody.buyerAddress || '',
+        name: paymentBody.buyerName || '',
+        email: paymentBody.buyerEmail || '',
+        phoneNumber: paymentBody.buyerPhone || '',
+      });
     } else {
       // need to log in
       localStorage.setItem('configurationId', id);
@@ -161,6 +207,72 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
 
           <div className="mt-8">
             <div className="bg-gray-50 p-6 sm:rounded-lg sm:p-8">
+              <h3 className="text-3xl font-bold tracking-tight text-gray-900">
+                Information
+              </h3>
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                <div className="grid w-full max-w-sm items-center gap-1.5">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    required
+                    placeholder="Enter your name"
+                    value={paymentBody?.buyerName}
+                    onChange={(e) =>
+                      setPaymentBody({
+                        ...paymentBody,
+                        buyerName: e?.target?.value || '',
+                      })
+                    }
+                  />
+                </div>
+                <div className="grid w-full max-w-sm items-center gap-1.5">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={paymentBody?.buyerEmail}
+                    onChange={(e) =>
+                      setPaymentBody({
+                        ...paymentBody,
+                        buyerEmail: e?.target?.value || '',
+                      })
+                    }
+                  />
+                </div>
+                <div className="grid w-full max-w-sm items-center gap-1.5">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="Enter your phone number"
+                    value={paymentBody?.buyerPhone}
+                    onChange={(e) =>
+                      setPaymentBody({
+                        ...paymentBody,
+                        buyerPhone: e?.target?.value || '',
+                      })
+                    }
+                  />
+                </div>
+                <div className="grid w-full max-w-sm items-center gap-1.5">
+                  <Label htmlFor="address">Address</Label>
+                  <Input
+                    id="address"
+                    type="text"
+                    placeholder="Enter your address"
+                    value={paymentBody?.buyerAddress}
+                    onChange={(e) =>
+                      setPaymentBody({
+                        ...paymentBody,
+                        buyerAddress: e?.target?.value || '',
+                      })
+                    }
+                  />
+                </div>
+              </div>
               <div className="flow-root text-sm">
                 <div className="flex items-center justify-between py-1 mt-2">
                   <p className="text-gray-600">Base price</p>

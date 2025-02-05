@@ -91,9 +91,9 @@ const ThankYou = () => {
               <div className="mt-2 text-zinc-700">
                 <address className="not-italic">
                   <span className="block">{shippingAddress?.name}</span>
-                  <span className="block">{shippingAddress?.street}</span>
+                  <span className="block">{shippingAddress?.address}</span>
                   <span className="block">
-                    {shippingAddress?.postalCode} {shippingAddress?.city}
+                    {shippingAddress?.phoneNumber}
                   </span>
                 </address>
               </div>

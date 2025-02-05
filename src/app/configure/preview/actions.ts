@@ -1,18 +1,43 @@
-"use server";
+'use server';
 
-import { BASE_PRICE, PRODUCT_PRICES } from "@/config/products";
-import { db } from "@/db";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { Order } from "@prisma/client";
+import { BASE_PRICE, PRODUCT_PRICES } from '@/config/products';
+import { db } from '@/db';
+import { payos } from '@/lib/payos';
+import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
+import { CheckoutResponseDataType } from '@payos/node/lib/type';
+import { CheckoutRequestType } from '@payos/node/lib/type';
+import { Order, ShippingAddress } from '@prisma/client';
+export const createPayment = async (
+  body: CheckoutRequestType,
+): Promise<CheckoutResponseDataType> => {
+  body.returnUrl = 'http://localhost:3000';
+  body.cancelUrl =
+    'http://localhost:3000/configure/preview?configId=' + body.description;
+  const paymentLinkRes = await payos.createPaymentLink(body);
 
-export const createOrder = async ({ configId }: { configId: string }) => {
+  return paymentLinkRes;
+};
+export type CreateOrder = {
+  configId: string;
+  address: string;
+  name: string;
+  email: string;
+  phoneNumber: string;
+};
+export const createOrder = async ({
+  configId,
+  address,
+  name,
+  email,
+  phoneNumber,
+}: CreateOrder) => {
   // Fetch the configuration by ID
   const configuration = await db.configuration.findUnique({
     where: { id: configId },
   });
 
   if (!configuration) {
-    throw new Error("No such configuration found");
+    throw new Error('No such configuration found');
   }
 
   // Retrieve the current user from the session
@@ -20,7 +45,7 @@ export const createOrder = async ({ configId }: { configId: string }) => {
   const user = await getUser();
 
   if (!user) {
-    throw new Error("You need to be logged in");
+    throw new Error('You need to be logged in');
   }
 
   // Determine the price (you can extend this logic if PRODUCT_PRICES are relevant)
@@ -45,10 +70,18 @@ export const createOrder = async ({ configId }: { configId: string }) => {
         amount: price, // Ensure the amount is in the correct format (e.g., dollars instead of cents)
         userId: user.id,
         configurationId: configuration.id,
+        shippingAddress: {
+          create: {
+            address,
+            name,
+            email,
+            phoneNumber,
+          },
+        },
       },
     });
   }
 
   // Optionally, you can return order information or a URL
-  return { url: "/" };
+  return { success: true };
 };
