@@ -56,8 +56,7 @@ const OrderReceivedEmail = ({
           <Section style={global.defaultPadding}>
             <Text style={adressTitle}>Shipping to: {shippingAddress.name}</Text>
             <Text style={{ ...global.text, fontSize: 14 }}>
-              {shippingAddress.street}, {shippingAddress.city},{' '}
-              {shippingAddress.state} {shippingAddress.postalCode}
+              {shippingAddress.address}
             </Text>
           </Section>
           <Hr style={global.hr} />
