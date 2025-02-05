@@ -31,22 +31,22 @@ enum ShirtSide {
 }
 
 model Configuration {
-  id                 String           @id @default(cuid())
+  id                 String               @id @default(cuid())
   ConfigurationImage ConfigurationImage[]
   color              ShirtColor
   model              ShirtModel
-  croppedImages      CroppedImage[]   // Liên kết tới các hình ảnh cắt của từng mặt
+  croppedImages      CroppedImage[] // Liên kết tới các hình ảnh cắt của từng mặt
   Order              Order[]
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
 }
 
 model CroppedImage {
   id              String        @id @default(cuid())
   configuration   Configuration @relation(fields: [configurationId], references: [id])
   configurationId String
-  side            ShirtSide     // Xác định mặt áo: trước, sau, trái, phải
-  url             String        // URL của hình ảnh đã cắt cho mặt áo này
+  side            ShirtSide // Xác định mặt áo: trước, sau, trái, phải
+  url             String // URL của hình ảnh đã cắt cho mặt áo này
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 }
@@ -67,17 +67,15 @@ model ConfigurationImage {
   imageUrlId      String
   Configuration   Configuration @relation(fields: [configurationId], references: [id])
   configurationId String
-  side            ShirtSide     // Xác định mặt áo: trước, sau, trái, phải
+  side            ShirtSide // Xác định mặt áo: trước, sau, trái, phải
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 }
 
-
-
 model User {
-  id    String  @id @default(cuid())
-  email String
-  Order Order[]
+  id        String   @id @default(cuid())
+  email     String
+  Order     Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -92,8 +90,8 @@ model Order {
   isPaid          Boolean       @default(false)
   status          OrderStatus   @default(awaiting_shipment)
 
-  shippingAddress   ShippingAddress? @relation(fields: [shippingAddressId], references: [id])
-  shippingAddressId String?
+  shippingAddress   ShippingAddress? @relation
+  shippingAddressId String? @unique
 
   createdAt DateTime @default(now())
   updated   DateTime @updatedAt
@@ -102,12 +100,9 @@ model Order {
 model ShippingAddress {
   id          String  @id @default(cuid())
   name        String
-  street      String
-  city        String
-  postalCode  String
-  country     String
-  state       String?
+  address     String
+  email       String
   phoneNumber String?
-  orders      Order[]
+  order       Order   @relation(fields: [orderId], references: [id])
+  orderId     String  @unique
 }
-

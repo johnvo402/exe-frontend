@@ -30,8 +30,8 @@ const Page = async () => {
     return notFound();
   }
 
-  const WEEKLY_GOAL = 500;
-  const MONTHLY_GOAL = 2500;
+  const WEEKLY_GOAL = 1000000;
+  const MONTHLY_GOAL = 5000000;
 
   return (
     <div className="flex min-h-screen w-full bg-muted/40">
@@ -87,6 +87,7 @@ const Page = async () => {
                   Purchase date
                 </TableHead>
                 <TableHead className="text-right">Amount</TableHead>
+                <TableHead className="text-right">Payment method</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -111,11 +112,16 @@ const Page = async () => {
                     {formatPrice(order.amount)}
                   </TableCell>
                   <TableCell className="text-right">
+                    {order.isPaid ? 'Paid' : 'Unpaid'}
+                  </TableCell>
+                  <TableCell className="text-right">
                     {order.configuration.croppedImages[0]?.url && (
                       <DownloadButton
-                        imageUrl={order.configuration.croppedImages.map(
-                          (image) => image.url,
+                        croppedImg={order.configuration.croppedImages}
+                        stickImg={order.configuration.ConfigurationImage.map(
+                          (img) => img.imageUrl,
                         )}
+                        configImg={order.configuration.ConfigurationImage}
                         customName={
                           order.shippingAddress?.name || order.user.email
                         }

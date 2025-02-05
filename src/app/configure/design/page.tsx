@@ -23,6 +23,7 @@ const Page = async () => {
   // if (!configuration) {
   //   return notFound();
   // }
+  // configure/design
 
   return <DesignConfigurator />;
 };

@@ -1,25 +1,25 @@
-"use server"
+'use server';
 
-import { db } from '@/db'
-import { OrderStatus } from '@prisma/client'
+import { db } from '@/db';
+import { OrderStatus } from '@prisma/client';
 
 export const changeOrderStatus = async ({
   id,
   newStatus,
 }: {
-  id: string
-  newStatus: OrderStatus
+  id: string;
+  newStatus: OrderStatus;
 }) => {
   try {
     await db.order.update({
       where: { id },
       data: { status: newStatus },
-    })
+    });
   } catch (error) {
-    console.error('Error updating order status:', error)
-    throw new Error('Failed to update order status')
+    console.error('Error updating order status:', error);
+    throw new Error('Failed to update order status');
   }
-}
+};
 
 export const getOrderData = async () => {
   const orders = await db.order.findMany({
@@ -33,6 +33,11 @@ export const getOrderData = async () => {
       configuration: {
         include: {
           croppedImages: true,
+          ConfigurationImage: {
+            include: {
+              imageUrl: true,
+            },
+          },
         },
       },
     },
@@ -63,4 +68,4 @@ export const getOrderData = async () => {
   });
 
   return { orders, lastWeekSum, lastMonthSum };
-}
+};
