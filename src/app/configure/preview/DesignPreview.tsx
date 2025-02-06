@@ -57,14 +57,14 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
     ({ value }) => value === model,
   )!;
 
-  let totalPrice = BASE_PRICE + (PRODUCT_PRICES.model[model] || 0);
+  let totalPrice = BASE_PRICE + (PRODUCT_PRICES.model[model] || 0) + 30000;
   const [paymentBody, setPaymentBody] = useState<CheckoutRequestType>({
     description: id,
     orderCode: Number(String(new Date().getTime()).slice(-6)),
     amount: totalPrice,
     returnUrl: '',
     cancelUrl: '',
-    buyerName: '', 
+    buyerName: '',
     buyerEmail: '',
     buyerAddress: '',
     buyerPhone: '',
@@ -277,10 +277,17 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
                 <div className="flex items-center justify-between py-1 mt-2">
                   <p className="text-gray-600">Base price</p>
                   <p className="font-medium text-gray-900">
-                    {formatPrice(BASE_PRICE)}
+                    {formatPrice(
+                      (PRODUCT_PRICES.model[model] || 0) + BASE_PRICE,
+                    )}
                   </p>
                 </div>
-
+                <div className="flex items-center justify-between py-1 mt-2">
+                  <p className="text-gray-600">Fee ship</p>
+                  <p className="font-medium text-gray-900">
+                    {formatPrice(30000)}
+                  </p>
+                </div>
                 <div className="flex items-center justify-between py-2">
                   <p className="text-gray-600">Color</p>
                   <p className="font-medium text-gray-900">

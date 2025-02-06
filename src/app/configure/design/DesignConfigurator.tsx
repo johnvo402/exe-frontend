@@ -9,7 +9,11 @@ import NextImage from 'next/image';
 import { Rnd } from 'react-rnd';
 import { RadioGroup } from '@headlessui/react';
 import { useRef, useState, useEffect } from 'react';
-import { COLORS, getTailwindColor, MODELS } from '@/validators/option-validator';
+import {
+  COLORS,
+  getTailwindColor,
+  MODELS,
+} from '@/validators/option-validator';
 import { Label } from '@/components/ui/label';
 import {
   DropdownMenu,
@@ -157,6 +161,19 @@ const DesignConfigurator = () => {
   const { mutate: createConfig, isPending } = useMutation({
     mutationKey: ['create-config'],
     mutationFn: async () => {
+      if (
+        images.front.length === 0 &&
+        images.back.length === 0 &&
+        images.left.length === 0 &&
+        images.right.length === 0
+      ) {
+        toast({
+          title: 'Lỗi cấu hình',
+          description: 'Please add at least one image to continue.',
+          variant: 'default',
+        });
+        return;
+      }
       try {
         const sides: ShirtSide[] = ['front', 'back', 'left', 'right'];
         const args: CreateConfigArgs = {
@@ -264,7 +281,7 @@ const DesignConfigurator = () => {
             },
           );
 
-          const uploadResponse = await startUpload([file]); 
+          const uploadResponse = await startUpload([file]);
           if (!uploadResponse || !uploadResponse[0]?.url) {
             throw new Error('Failed to upload image');
           }
@@ -703,7 +720,13 @@ const DesignConfigurator = () => {
               </p>
               <Button
                 isLoading={isPending}
-                disabled={isPending}
+                disabled={
+                  isPending ||
+                  (images.front.length === 0 &&
+                    images.back.length === 0 &&
+                    images.left.length === 0 &&
+                    images.right.length === 0)
+                }
                 loadingText="Saving"
                 onClick={() => createConfig()}
                 size="sm"
