@@ -21,6 +21,10 @@ enum ShirtModel {
 enum ShirtColor {
   black
   white
+  red
+  blue
+  green
+  yellow
 }
 
 enum ShirtSide {

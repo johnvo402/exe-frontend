@@ -9,7 +9,7 @@ import NextImage from 'next/image';
 import { Rnd } from 'react-rnd';
 import { RadioGroup } from '@headlessui/react';
 import { useRef, useState, useEffect } from 'react';
-import { COLORS, MODELS } from '@/validators/option-validator';
+import { COLORS, getTailwindColor, MODELS } from '@/validators/option-validator';
 import { Label } from '@/components/ui/label';
 import {
   DropdownMenu,
@@ -80,6 +80,13 @@ const DesignConfigurator = () => {
     saveConfig();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [images]);
+  useEffect(() => {
+    const saveConfig = async () => {
+      await saveConfiguration();
+    };
+    saveConfig();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     //hàm kiểm tra việc nhấn phím shift
@@ -257,7 +264,7 @@ const DesignConfigurator = () => {
             },
           );
 
-          const uploadResponse = await startUpload([file]); // Pass the File object
+          const uploadResponse = await startUpload([file]); 
           if (!uploadResponse || !uploadResponse[0]?.url) {
             throw new Error('Failed to upload image');
           }
@@ -328,7 +335,7 @@ const DesignConfigurator = () => {
         const ctx = canvas.getContext('2d');
 
         if (ctx) {
-          ctx.fillStyle = options.color.tw;
+          ctx.fillStyle = getTailwindColor(options.color.tw);
           ctx.fillRect(0, 0, caseWidth, caseHeight);
         }
         if (images[side].length !== 0) {
@@ -351,7 +358,7 @@ const DesignConfigurator = () => {
         }
         const backgroundImage = new Image();
         backgroundImage.crossOrigin = 'anonymous';
-        backgroundImage.src = `/template/template-bg-${side}.png`;
+        backgroundImage.src = `/template/template-bg-${side}-${options.model.value}.png`;
         await new Promise((resolve) => (backgroundImage.onload = resolve));
 
         ctx?.drawImage(backgroundImage, 0, 0, caseWidth, caseHeight);
@@ -413,7 +420,7 @@ const DesignConfigurator = () => {
                 <NextImage
                   fill
                   alt="T-shirt image"
-                  src={`/template/template-bg-${currentSide}.png`}
+                  src={`/template/template-bg-${currentSide}-${options.model.value}.png`}
                   className="pointer-events-none z-50 select-none"
                   loading="lazy"
                 />
@@ -475,14 +482,11 @@ const DesignConfigurator = () => {
                       ),
                     }));
                   }}
-                  className="absolute z-20 border-[3px] border-primary"
+                  className="absolute z-20 border-none"
                   lockAspectRatio={isShiftPressed}
                   resizeHandleComponent={{
-                    bottomRight: <HandleComponent />,
-                    bottomLeft: <HandleComponent />,
                     topRight: (
                       <>
-                        <HandleComponent />
                         <button
                           onClick={() => {
                             setImages((prevImages) => ({
@@ -498,7 +502,6 @@ const DesignConfigurator = () => {
                         </button>
                       </>
                     ),
-                    topLeft: <HandleComponent />,
                   }}
                 >
                   <div className="relative w-full h-full">
@@ -671,7 +674,7 @@ const DesignConfigurator = () => {
                           'cursor-pointer',
                           currentSide === side ? 'border-2 border-primary' : '',
                         )}
-                        src={`/template/template-bg-${side}.png`}
+                        src={`/template/template-bg-${side}-${options.model.value}.png`}
                         alt={side}
                         width={50}
                         height={50}
