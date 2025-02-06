@@ -81,6 +81,7 @@ const Page = async () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Code</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead className="hidden sm:table-cell">Status</TableHead>
                 <TableHead className="hidden sm:table-cell">
@@ -94,6 +95,13 @@ const Page = async () => {
             <TableBody>
               {orders.map((order) => (
                 <TableRow key={order.id} className="bg-accent">
+                  <TableCell>
+                    <div className="font-medium">
+                      <a href={`/order/${order.id}`} className="text-blue-600">
+                        #{order.id.slice(-6)}
+                      </a>
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <div className="font-medium">
                       {order.shippingAddress?.name}
