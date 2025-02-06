@@ -4,7 +4,7 @@ const { getUser } = getKindeServerSession();
 export async function getOrders() {
   const user = await getUser();
   if (!user?.id) {
-    throw new Error('Invalid user data');
+    return [];
   }
   return await db.order.findMany({
     where: {
