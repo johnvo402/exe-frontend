@@ -24,6 +24,7 @@ export type CreateOrder = {
   name: string;
   email: string;
   phoneNumber: string;
+  amount: number;
 };
 export const createOrder = async ({
   configId,
@@ -31,6 +32,7 @@ export const createOrder = async ({
   name,
   email,
   phoneNumber,
+  amount,
 }: CreateOrder) => {
   // Fetch the configuration by ID
   const configuration = await db.configuration.findUnique({
@@ -50,7 +52,6 @@ export const createOrder = async ({
   }
 
   // Determine the price (you can extend this logic if PRODUCT_PRICES are relevant)
-  let price = BASE_PRICE;
 
   let order: Order | undefined = undefined;
 
@@ -68,7 +69,7 @@ export const createOrder = async ({
     // Create a new order if no existing one is found
     order = await db.order.create({
       data: {
-        amount: price, // Ensure the amount is in the correct format (e.g., dollars instead of cents)
+        amount, // Ensure the amount is in the correct format (e.g., dollars instead of cents)
         userId: user.id,
         configurationId: configuration.id,
         shippingAddress: {

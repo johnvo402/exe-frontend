@@ -126,6 +126,7 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
         name: paymentBody.buyerName || '',
         email: paymentBody.buyerEmail || '',
         phoneNumber: paymentBody.buyerPhone || '',
+        amount: totalPrice,
       });
     } else {
       // need to log in
