@@ -10,9 +10,10 @@ import { Order, ShippingAddress } from '@prisma/client';
 export const createPayment = async (
   body: CheckoutRequestType,
 ): Promise<CheckoutResponseDataType> => {
-  body.returnUrl = 'http://localhost:3000';
+  body.returnUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? '';
   body.cancelUrl =
-    'http://localhost:3000/configure/preview?configId=' + body.description;
+    `${process.env.NEXT_PUBLIC_SERVER_URL}/configure/preview?configId=` +
+    body.description;
   const paymentLinkRes = await payos.createPaymentLink(body);
 
   return paymentLinkRes;
