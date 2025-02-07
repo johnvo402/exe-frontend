@@ -1,21 +1,28 @@
 import { WebhookType } from '@payos/node/lib/type';
+import { payos } from '@/lib/payos';
 import { db } from '@/db';
 
 export async function POST(request: Request) {
   try {
     // Lấy dữ liệu từ request body
     const body: WebhookType = await request.json();
-
+    const webhookData = payos.verifyPaymentWebhookData(body);
+    if (webhookData.orderCode == 123) {
+      return new Response(JSON.stringify(null), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
     // Kiểm tra dữ liệu có hợp lệ không
-    if (!body?.data?.description) {
+    if (!webhookData?.description) {
       return new Response(JSON.stringify({ error: 'Invalid description' }), {
-        status: 400,
+        status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
     // Lấy ID từ description
-    const parts = body.data.description.split(' ');
+    const parts = webhookData.description.split(' ');
     if (parts.length < 2) {
       return new Response(
         JSON.stringify({ error: 'Invalid description format' }),
