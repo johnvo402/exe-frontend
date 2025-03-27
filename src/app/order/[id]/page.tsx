@@ -12,6 +12,7 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel';
 import TShirt from '@/components/TShirt';
+import { getTranslations } from 'next-intl/server';
 
 export default async function OrderDetail({
   params,
@@ -19,20 +20,20 @@ export default async function OrderDetail({
   params: { id: string };
 }) {
   const order = await getOrder(params.id);
-
+  const t = await getTranslations('OrderHistory');
   if (!order) {
     notFound();
   }
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">Order Details</h1>
+      <h1 className="text-3xl font-bold mb-6">{t('detail.title')}</h1>
       <Card>
         <CardHeader>
           <CardTitle>
-            Order #{order.id}{' '}
+            {t('order')} #{order.id}{' '}
             <Badge variant={order.isPaid ? 'success' : 'destructive'}>
-              {order.isPaid ? 'Paid' : 'Unpaid'}
+              {order.isPaid ? t('paid') : t('unpaid')}
             </Badge>
           </CardTitle>
         </CardHeader>
@@ -41,40 +42,53 @@ export default async function OrderDetail({
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <h2 className="text-xl font-semibold mb-2">
-                  Order Information
+                  {t('detail.infor')}
                 </h2>
                 <p className="capitalize">
-                  Status: {order.status.replace('_', ' ')}
+                  {t('status')}: {order.status.replace('_', ' ')}
                 </p>
-                <p>Amount: {formatPrice(order.amount)}</p>
                 <p>
-                  Date: {order.createdAt.toLocaleDateString()}{' '}
+                  {t('amount')}: {formatPrice(order.amount)}
+                </p>
+                <p>
+                  {t('detail.date')}: {order.createdAt.toLocaleDateString()}{' '}
                   {order.createdAt.toLocaleTimeString()}
                 </p>
               </div>
               <div>
                 <h2 className="text-xl font-semibold mb-2">
-                  Shirt Configuration
+                  {t('detail.config')}
                 </h2>
                 <p className="capitalize">
-                  Model: {order.configuration.model.replace('_', ' ')}
+                  {t('model')}: {order.configuration.model.replace('_', ' ')}
                 </p>
-                <p className="capitalize">Color: {order.configuration.color}</p>
+                <p className="capitalize">
+                  {t('color')}: {order.configuration.color}
+                </p>
               </div>
               {order.shippingAddress && (
                 <div>
                   <h2 className="text-xl font-semibold mb-2">
-                    Shipping Address
+                    {t('detail.address_config')}
                   </h2>
-                  <p>Name: {order.shippingAddress.name}</p>
-                  <p>Address: {order.shippingAddress.address}</p>
+                  <p>
+                    {t('detail.name')}: {order.shippingAddress.name}
+                  </p>
+                  <p>
+                    {t('detail.address')}: {order.shippingAddress.address}
+                  </p>
                   <p>Email: {order.shippingAddress.email}</p>
-                  <p>Phone: {order.shippingAddress.phoneNumber || 'N/A'}</p>
+                  <p>
+                    {t('detail.phone')}:{' '}
+                    {order.shippingAddress.phoneNumber || 'N/A'}
+                  </p>
                 </div>
               )}
             </div>
             <div>
-              <h2 className="text-xl font-semibold mb-2">Cropped Images</h2>
+              <h2 className="text-xl font-semibold mb-2">
+                {t('detail.crop_image')}
+              </h2>
               <div className="flex items-center justify-center">
                 <div className="md:col-span-4 lg:col-span-3 md:row-span-2 md:row-end-2">
                   <Carousel className="w-full">

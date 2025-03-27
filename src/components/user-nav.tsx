@@ -22,12 +22,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LogoutLink } from '@kinde-oss/kinde-auth-nextjs';
 import { KindeUser } from '@kinde-oss/kinde-auth-nextjs/types';
+import { useTranslations } from 'next-intl';
 type UserNavProps = {
-  user: KindeUser<Record<string, unknown>>;
+  user: KindeUser;
   isAdmin: boolean;
 };
 
 export function UserNav({ user, isAdmin }: UserNavProps) {
+  const t = useTranslations('UserNav');
   return (
     <DropdownMenu>
       <TooltipProvider disableHoverableContent>
@@ -67,7 +69,7 @@ export function UserNav({ user, isAdmin }: UserNavProps) {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           {isAdmin && (
-            <DropdownMenuItem className="hover:cursor-pointer" >
+            <DropdownMenuItem className="hover:cursor-pointer">
               <Link
                 href="/dashboard"
                 className={buttonVariants({
@@ -76,11 +78,11 @@ export function UserNav({ user, isAdmin }: UserNavProps) {
                 })}
               >
                 <LayoutGrid className="w-4 h-4 mr-3 text-muted-foreground" />
-                Dashboard ✨
+                {t('dashboard')} ✨
               </Link>
             </DropdownMenuItem>
           )}
-          <DropdownMenuItem className="hover:cursor-pointer" >
+          <DropdownMenuItem className="hover:cursor-pointer">
             <Link
               href="/order"
               className={buttonVariants({
@@ -89,7 +91,7 @@ export function UserNav({ user, isAdmin }: UserNavProps) {
               })}
             >
               <ListOrdered className="w-4 h-4 mr-3 text-muted-foreground" />
-              Your Orders
+              {t('order')}
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -102,7 +104,7 @@ export function UserNav({ user, isAdmin }: UserNavProps) {
             })}
           >
             <LogOut className="w-4 h-4 mr-3 text-muted-foreground" />
-            Sign out
+            {t('signout')}
           </LogoutLink>
         </DropdownMenuItem>
       </DropdownMenuContent>

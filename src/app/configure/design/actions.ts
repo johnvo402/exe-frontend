@@ -10,7 +10,9 @@ export type CreateConfigArgs = {
     url: string; // Image URL
     width: number; // Image width
     height: number; // Image height
-    side: ShirtSide; // Shirt side
+    side: ShirtSide; // Shirt
+    x: number;
+    y: number;
   }[];
   croppedImages: {
     side: ShirtSide; // Cropped side
@@ -43,6 +45,8 @@ export async function createConfig({
                 url: image.url,
                 width: image.width,
                 height: image.height,
+                x: image.x,
+                y: image.y,
               },
             },
           })),

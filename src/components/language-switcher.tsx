@@ -6,7 +6,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./select";
+} from "./ui/select";
 import Image from "next/image";
 
 export default function LanguageSwitcher() {
@@ -28,7 +28,7 @@ export default function LanguageSwitcher() {
           <SelectItem value="en">
             <div className="flex items-center space-x-2">
               <Image
-                src="/flag/FlagEng.png"
+                src="/flags/en.svg"
                 alt="English Flag"
                 width={24}
                 height={18}
@@ -39,7 +39,7 @@ export default function LanguageSwitcher() {
           <SelectItem value="vi">
             <div className="flex items-center space-x-2">
               <Image
-                src="/flag/FlagVn.png"
+                src="/flags/vi.svg"
                 alt="Vietnamese Flag"
                 width={24}
                 height={16}

@@ -27,6 +27,7 @@ import { Card } from '@/components/ui/card';
 import { CheckoutRequestType } from '@payos/node/lib/type';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslations } from 'next-intl';
 interface Configuration {
   id: string;
   color: ShirtColor;
@@ -37,6 +38,7 @@ interface Configuration {
 }
 const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
   const router = useRouter();
+  const t = useTranslations('DesignPreview');
   const { toast } = useToast();
   const { id } = configuration;
   const { isAuthenticated } = useKindeBrowserClient();
@@ -178,30 +180,30 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
 
         <div className="mt-6 sm:col-span-9 md:row-end-1">
           <h3 className="text-3xl font-bold tracking-tight text-gray-900">
-            Your {modelLabel}
+            {modelLabel}
           </h3>
           <div className="mt-3 flex items-center gap-1.5 text-base">
             <Check className="h-4 w-4 text-green-500" />
-            In stock and ready to ship
+            {t('stock')}
           </div>
         </div>
 
         <div className="sm:col-span-12 md:col-span-9 text-base">
           <div className="grid grid-cols-1 gap-y-8 border-b border-gray-200 py-8 sm:grid-cols-2 sm:gap-x-6 sm:py-6 md:py-10">
             <div>
-              <p className="font-medium text-zinc-950">Highlights</p>
+              <p className="font-medium text-zinc-950"> {t('highlight')}</p>
               <ol className="mt-3 text-zinc-700 list-disc list-inside">
-                <li>Customizable design options</li>
-                <li>Available in multiple sizes</li>
-                <li>Choose your preferred color</li>
-                <li>Personalized text and graphics</li>
+                <li> {t('highlight.one')}</li>
+                <li>{t('highlight.two')}</li>
+                <li>{t('highlight.three')}</li>
+                <li>{t('highlight.four')}</li>
               </ol>
             </div>
             <div>
               <p className="font-medium text-zinc-950">Materials</p>
               <ol className="mt-3 text-zinc-700 list-disc list-inside">
-                <li>Eco-friendly, sustainable fabric</li>
-                <li>Water-resistant and easy to clean</li>
+                <li>{t('highlight.five')}</li>
+                <li>{t('highlight.six')}</li>
               </ol>
             </div>
           </div>
@@ -209,16 +211,16 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
           <div className="mt-8">
             <div className="bg-gray-50 p-6 sm:rounded-lg sm:p-8">
               <h3 className="text-3xl font-bold tracking-tight text-gray-900">
-                Information
+                {t('infor')}
               </h3>
               <div className="mt-4 grid grid-cols-2 gap-4">
                 <div className="grid w-full max-w-sm items-center gap-1.5">
-                  <Label htmlFor="name">Name</Label>
+                  <Label htmlFor="name">{t('field.name')}</Label>
                   <Input
                     id="name"
                     type="text"
                     required
-                    placeholder="Enter your name"
+                    placeholder={t('field.placeholder_name')}
                     value={paymentBody?.buyerName}
                     onChange={(e) =>
                       setPaymentBody({
@@ -233,7 +235,7 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder={t('field.placeholder_email')}
                     value={paymentBody?.buyerEmail}
                     onChange={(e) =>
                       setPaymentBody({
@@ -244,11 +246,11 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
                   />
                 </div>
                 <div className="grid w-full max-w-sm items-center gap-1.5">
-                  <Label htmlFor="phone">Phone</Label>
+                  <Label htmlFor="phone">{t('field.phone')}</Label>
                   <Input
                     id="phone"
                     type="tel"
-                    placeholder="Enter your phone number"
+                    placeholder={t('field.placeholder_phone')}
                     value={paymentBody?.buyerPhone}
                     onChange={(e) =>
                       setPaymentBody({
@@ -259,11 +261,11 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
                   />
                 </div>
                 <div className="grid w-full max-w-sm items-center gap-1.5">
-                  <Label htmlFor="address">Address</Label>
+                  <Label htmlFor="address">{t('field.address')}</Label>
                   <Input
                     id="address"
                     type="text"
-                    placeholder="Enter your address"
+                    placeholder={t('field.placeholder_address')}
                     value={paymentBody?.buyerAddress}
                     onChange={(e) =>
                       setPaymentBody({
@@ -276,7 +278,7 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
               </div>
               <div className="flow-root text-sm">
                 <div className="flex items-center justify-between py-1 mt-2">
-                  <p className="text-gray-600">Base price</p>
+                  <p className="text-gray-600">{t('base_price')}</p>
                   <p className="font-medium text-gray-900">
                     {formatPrice(
                       (PRODUCT_PRICES.model[model] || 0) + BASE_PRICE,
@@ -284,13 +286,13 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
                   </p>
                 </div>
                 <div className="flex items-center justify-between py-1 mt-2">
-                  <p className="text-gray-600">Fee ship</p>
+                  <p className="text-gray-600">{t('fee_ship')}</p>
                   <p className="font-medium text-gray-900">
                     {formatPrice(30000)}
                   </p>
                 </div>
                 <div className="flex items-center justify-between py-2">
-                  <p className="text-gray-600">Color</p>
+                  <p className="text-gray-600">{t('color')}</p>
                   <p className="font-medium text-gray-900">
                     {
                       COLORS.find(
@@ -301,12 +303,12 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
                 </div>
 
                 <div className="flex items-center justify-between py-2">
-                  <p className="text-gray-600">Model</p>
+                  <p className="text-gray-600">{t('model')}</p>
                   <p className="font-medium text-gray-900">{modelLabel}</p>
                 </div>
 
                 <div className="flex items-center justify-between py-2">
-                  <p className="font-semibold text-gray-900">Order total</p>
+                  <p className="font-semibold text-gray-900">{t('total')}</p>
                   <p className="font-semibold text-gray-900">
                     {formatPrice(totalPrice)}
                   </p>
@@ -319,7 +321,8 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
                 onClick={() => handleCheckout()}
                 className="px-4 sm:px-6 lg:px-8"
               >
-                Check out <ArrowRight className="h-4 w-4 ml-1.5 inline" />
+                {t('check_out')}{' '}
+                <ArrowRight className="h-4 w-4 ml-1.5 inline" />
               </Button>
             </div>
           </div>
