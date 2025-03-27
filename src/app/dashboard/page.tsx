@@ -22,6 +22,7 @@ import StatusDropdown from './StatusDropdown';
 import DownloadButton from '@/components/DownloadButton';
 import { getOrderData } from './actions';
 import { checkRole } from '@/lib/useRoleAndPermission';
+import { getTranslations } from 'next-intl/server';
 const Page = async () => {
   const { orders, lastWeekSum, lastMonthSum } = await getOrderData();
 
@@ -32,7 +33,7 @@ const Page = async () => {
 
   const WEEKLY_GOAL = 1000000;
   const MONTHLY_GOAL = 5000000;
-
+  const t = await getTranslations('admin');
   return (
     <div className="flex min-h-screen w-full bg-muted/40">
       <div className="max-w-7xl w-full mx-auto flex flex-col sm:gap-4 sm:py-4">
@@ -40,14 +41,14 @@ const Page = async () => {
           <div className="grid gap-4 sm:grid-cols-2">
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>Last Week</CardDescription>
+                <CardDescription>{t('last_week')}</CardDescription>
                 <CardTitle className="text-4xl">
                   {formatPrice(lastWeekSum._sum.amount ?? 0)}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-sm text-muted-foreground">
-                  of {formatPrice(WEEKLY_GOAL)} goal
+                  {t('of')} {formatPrice(WEEKLY_GOAL)} {t('goal')}
                 </div>
               </CardContent>
               <CardFooter>
@@ -58,14 +59,14 @@ const Page = async () => {
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>Last Month</CardDescription>
+                <CardDescription>{t('last_month')}</CardDescription>
                 <CardTitle className="text-4xl">
                   {formatPrice(lastMonthSum._sum.amount ?? 0)}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-sm text-muted-foreground">
-                  of {formatPrice(MONTHLY_GOAL)} goal
+                  {t('of')} {formatPrice(MONTHLY_GOAL)} {t('goal')}
                 </div>
               </CardContent>
               <CardFooter>
@@ -76,19 +77,23 @@ const Page = async () => {
             </Card>
           </div>
 
-          <h1 className="text-4xl font-bold tracking-tight">Incoming orders</h1>
+          <h1 className="text-4xl font-bold tracking-tight">
+            {t('income_order')}{' '}
+          </h1>
 
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Code</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead className="hidden sm:table-cell">Status</TableHead>
+                <TableHead>{t('code')} </TableHead>
+                <TableHead>{t('customer')} </TableHead>
                 <TableHead className="hidden sm:table-cell">
-                  Purchase date
+                  {t('status')}{' '}
                 </TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead className="text-right">Payment method</TableHead>
+                <TableHead className="hidden sm:table-cell">
+                  {t('purchase_date')}
+                </TableHead>
+                <TableHead className="text-right">{t('amount')} </TableHead>
+                <TableHead className="text-right">{t('Payment')} </TableHead>
               </TableRow>
             </TableHeader>
 

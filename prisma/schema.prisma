@@ -60,6 +60,8 @@ model ImageUrl {
   width              Int
   height             Int
   url                String
+  x                  Float
+  y                  Float
   ConfigurationImage ConfigurationImage[]
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
@@ -80,6 +82,7 @@ model User {
   id        String   @id @default(cuid())
   email     String
   Order     Order[]
+  avatarUrl String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -95,7 +98,7 @@ model Order {
   status          OrderStatus   @default(awaiting_shipment)
 
   shippingAddress   ShippingAddress? @relation
-  shippingAddressId String? @unique
+  shippingAddressId String?          @unique
 
   createdAt DateTime @default(now())
   updated   DateTime @updatedAt

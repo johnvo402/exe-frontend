@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import MaxWidthWrapper from './MaxWidthWrapper';
+import { useTranslations } from 'next-intl';
 
 const Footer = () => {
+  const t = useTranslations('Footer');
   return (
     <footer className="bg-white h-20 relative">
       <MaxWidthWrapper>
@@ -10,7 +12,7 @@ const Footer = () => {
         <div className="h-full flex flex-col md:flex-row md:justify-between justify-center items-center">
           <div className="text-center md:text-left pb-2 md:pb-0">
             <p className="text-sm text-muted-foreground">
-              &copy; 2024 All rights reserved
+              &copy; 2024 {t('all_right')}
             </p>
           </div>
 
@@ -20,9 +22,9 @@ const Footer = () => {
                 href="/about-us"
                 className="text-sm text-muted-foreground hover:text-gray-600"
               >
-                About Us
+                {t('about_us')}
               </Link>
-              <Link
+              {/* <Link
                 href="#"
                 className="text-sm text-muted-foreground hover:text-gray-600"
               >
@@ -39,7 +41,7 @@ const Footer = () => {
                 className="text-sm text-muted-foreground hover:text-gray-600"
               >
                 Cookie Policy
-              </Link>
+              </Link> */}
             </div>
           </div>
         </div>
