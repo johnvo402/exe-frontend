@@ -197,6 +197,44 @@ const DesignConfigurator = () => {
   const [inlineEditingId, setInlineEditingId] = useState<string | null>(null);
   const [inlineEditText, setInlineEditText] = useState('');
 
+  const [isLocked, setIsLocked] = useState<boolean>(false); // Trạng thái khóa/mở
+  const [timeLeft, setTimeLeft] = useState<number>(180); // Thời gian còn lại (3 phút = 180 giây)
+
+  // Hàm xử lý khi nhấn nút
+  const handleClick = (): void => {
+    if (!isLocked) {
+      setIsLocked(true);
+      setTimeLeft(180); // Đặt lại thời gian về 3 phút
+      toast({
+        title: 'Wait in 3 minute',
+      });
+    }
+  };
+
+  // Đếm ngược khi nút bị khóa
+  useEffect(() => {
+    if (!isLocked) return; // Không chạy nếu nút không bị khóa
+
+    const countdown = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(countdown); // Dừng khi hết thời gian
+          setIsLocked(false); // Mở khóa nút
+          return 0;
+        }
+        return prev - 1; // Giảm thời gian
+      });
+    }, 1000); // Cập nhật mỗi giây
+
+    // Cleanup để tránh memory leak
+    return () => clearInterval(countdown);
+  }, [isLocked]);
+
+  // Tính phút và giây từ timeLeft
+  const minutes: number = Math.floor(timeLeft / 60);
+  const seconds: number = timeLeft % 60;
+  const displayTime: string = `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+
   // Save configuration when elements change
   useEffect(() => {
     const saveConfig = async () => {
@@ -314,6 +352,7 @@ const DesignConfigurator = () => {
     setIsDragOver(false);
   };
   const generateImagesWithAI = async () => {
+    void handleClick();
     if (!aiImageGeneration.prompt.trim()) {
       toast({
         title: 'Prompt Required',
@@ -1523,10 +1562,16 @@ const DesignConfigurator = () => {
                     className="w-full"
                     disabled={
                       !aiImageGeneration.prompt.trim() ||
-                      aiImageGeneration.isGenerating
+                      aiImageGeneration.isGenerating ||
+                      isLocked
                     }
                   >
-                    {aiImageGeneration.isGenerating ? (
+                    {isLocked ? (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                        {displayTime}
+                      </>
+                    ) : aiImageGeneration.isGenerating ? (
                       <>
                         <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                         Generating...
