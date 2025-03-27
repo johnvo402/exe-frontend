@@ -24,7 +24,7 @@ import { LogoutLink } from '@kinde-oss/kinde-auth-nextjs';
 import { KindeUser } from '@kinde-oss/kinde-auth-nextjs/types';
 import { useTranslations } from 'next-intl';
 type UserNavProps = {
-  user: KindeUser;
+  user: KindeUser<Record<string, unknown>>;
   isAdmin: boolean;
 };
 
