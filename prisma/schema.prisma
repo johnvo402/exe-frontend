@@ -60,8 +60,8 @@ model ImageUrl {
   width              Int
   height             Int
   url                String
-  x                  Float
-  y                  Float
+  x                  Float?
+  y                  Float?
   ConfigurationImage ConfigurationImage[]
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
