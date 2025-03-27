@@ -1,5 +1,5 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export interface LangState {
   lang: string;
@@ -9,13 +9,13 @@ export interface LangState {
 export const useLanguage = create<LangState>()(
   persist(
     (set) => ({
-      lang: "vi",
+      lang: 'vi',
 
       setLang: (lang: string | null) =>
         set(() => ({
-          lang: lang || "vi",
+          lang: lang || 'vi',
         })),
     }),
-    { name: "lang-storage" }
-  )
+    { name: 'lang-storage' },
+  ),
 );
